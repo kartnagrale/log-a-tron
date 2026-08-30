@@ -1,0 +1,2 @@
+package com.logatron.processor.parse;
+public class ProcessingException extends RuntimeException {private final String code; public ProcessingException(String code,String message){super(message);this.code=code;} public String code(){return code;}}

@@ -1,0 +1,78 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  file_storage:
+    directory: /var/lib/otelcol/file_storage
+    create_directory: true
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 192
+  transform/redact:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+          - replace_pattern(body, "(?i)(authorization\\s*[:=]\\s*bearer\\s+)[^\\s,;\\\"]+", "$$1[REDACTED]")
+          - replace_pattern(body, "(?i)((?:password|passwd|api[_-]?key|access[_-]?token|refresh[_-]?token|secret)\\s*[:=]\\s*[\\\"]?)[^\\s,;&\\\"]+", "$$1[REDACTED]")
+          - replace_pattern(body, "(?i)(jdbc:[a-z0-9]+://[^:/@\\s]+:)[^@/\\s]+(@)", "$$1[REDACTED]$$2")
+          - set(body, ParseJSON(body))
+  batch:
+    timeout: 500ms
+    send_batch_size: 100
+exporters:
+  kafka:
+    brokers: [kafka:9092]
+    topic: logs.raw.v1
+    encoding: raw
+    producer:
+      required_acks: -1
+      compression: zstd
+    sending_queue:
+      enabled: true
+      storage: file_storage
+      queue_size: 5000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 10s
+      max_elapsed_time: 0s
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      storage: file_storage
+      queue_size: 2000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 10s
+      max_elapsed_time: 0s
+  prometheus:
+    endpoint: 0.0.0.0:9464
+    enable_open_metrics: true
+    send_timestamps: true
+service:
+  extensions: [health_check,file_storage]
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter,transform/redact,batch]
+      exporters: [kafka]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter,batch]
+      exporters: [otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter,batch]
+      exporters: [prometheus]

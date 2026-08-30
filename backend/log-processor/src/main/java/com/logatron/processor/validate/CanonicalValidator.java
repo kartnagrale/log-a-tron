@@ -1,0 +1,3 @@
+package com.logatron.processor.validate;
+import com.logatron.contracts.ingestion.CanonicalLogEvent;import com.logatron.processor.parse.ProcessingException;import org.springframework.stereotype.Component;
+@Component public class CanonicalValidator {public void validate(CanonicalLogEvent e){if(e.schemaVersion()!=1||e.eventId()==null||e.timestamp()==null||e.observedTimestamp()==null||e.ingestedAt()==null||e.projectId()==null||e.environmentId()==null||e.serviceId()==null||e.message()==null||e.message().isBlank()||e.fingerprint()==null)throw new ProcessingException("INVALID_CANONICAL","Canonical event is missing required fields");}}

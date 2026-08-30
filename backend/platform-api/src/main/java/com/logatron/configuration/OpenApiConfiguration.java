@@ -1,0 +1,3 @@
+package com.logatron.configuration;
+import io.swagger.v3.oas.models.*;import io.swagger.v3.oas.models.info.Info;import io.swagger.v3.oas.models.security.*;import org.springframework.context.annotation.*;
+@Configuration public class OpenApiConfiguration{@Bean OpenAPI logATronOpenApi(){return new OpenAPI().info(new Info().title("LOG-A-TRON Platform API").version("v1").description("Phase 1 catalog and access-control API")).components(new Components().addSecuritySchemes("bearerJwt",new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT"))).addSecurityItem(new SecurityRequirement().addList("bearerJwt"));}}

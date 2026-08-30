@@ -1,0 +1,14 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ""
+          audiences: log-a-tron-api
+logatron:
+  dev-auth:
+    issuer: http://localhost:8080/dev-auth
+    audience: log-a-tron-api
+    secret: ${DEV_JWT_SECRET:local-development-secret-must-be-at-least-32-bytes}
+    token-minutes: 60
+

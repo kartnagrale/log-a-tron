@@ -1,0 +1,3 @@
+package com.logatron.auth.persistence;
+import org.junit.jupiter.api.Test;import java.time.Instant;import java.util.UUID;import static org.assertj.core.api.Assertions.*;import static org.mockito.Mockito.mock;
+class ProjectMembershipEntityTest{@Test void validityWindowIsEvaluatedAtRequestedInstant(){Instant now=Instant.parse("2026-08-26T00:00:00Z");var membership=new ProjectMembershipEntity(UUID.randomUUID(),mock(UserAccountEntity.class),mock(com.logatron.catalog.persistence.ProjectEntity.class),mock(RoleEntity.class),now.minusSeconds(60),now.plusSeconds(60));assertThat(membership.isActiveAt(now)).isTrue();assertThat(membership.isActiveAt(now.plusSeconds(61))).isFalse();}}

@@ -1,0 +1,3 @@
+package com.logatron.processor.parse;
+import org.springframework.stereotype.Component;import java.util.Locale;
+@Component public class SeverityNormalizer {public String normalize(String raw){if(raw==null||raw.isBlank())return "UNKNOWN";return switch(raw.toUpperCase(Locale.ROOT)){case "WARNING"->"WARN";case "ERR"->"ERROR";case "CRITICAL"->"FATAL";case "TRACE","DEBUG","INFO","WARN","ERROR","FATAL"->raw.toUpperCase(Locale.ROOT);default->"UNKNOWN";};}public int number(String level){return switch(level){case "TRACE"->1;case "DEBUG"->5;case "INFO"->9;case "WARN"->13;case "ERROR"->17;case "FATAL"->21;default->0;};}}

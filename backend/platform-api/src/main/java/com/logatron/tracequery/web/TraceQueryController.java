@@ -1,0 +1,3 @@
+package com.logatron.tracequery.web;
+import com.logatron.tracequery.application.TraceQueryService;import com.logatron.tracequery.web.TraceDtos.TraceView;import jakarta.servlet.http.HttpServletRequest;import org.springframework.security.core.annotation.AuthenticationPrincipal;import org.springframework.security.oauth2.jwt.Jwt;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/v1/traces")public class TraceQueryController{private final TraceQueryService service;public TraceQueryController(TraceQueryService service){this.service=service;}@GetMapping("/{traceId}")public TraceView get(@AuthenticationPrincipal Jwt jwt,@PathVariable String traceId,HttpServletRequest request){return service.get(jwt,traceId,request);}}

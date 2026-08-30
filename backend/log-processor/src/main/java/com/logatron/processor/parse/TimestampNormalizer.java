@@ -1,0 +1,3 @@
+package com.logatron.processor.parse;
+import org.springframework.stereotype.Component;import java.time.*;import java.time.format.*;
+@Component public class TimestampNormalizer {private static final DateTimeFormatter JAVA=DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSS]"); public Instant parse(String value){if(value==null||value.isBlank())return null;try{return Instant.parse(value);}catch(DateTimeParseException ignored){}try{return LocalDateTime.parse(value,JAVA).toInstant(ZoneOffset.UTC);}catch(DateTimeParseException e){throw new ProcessingException("INVALID_TIMESTAMP","Application timestamp is invalid");}}}

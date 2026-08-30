@@ -1,0 +1,3 @@
+import { Component } from '@angular/core';import { MessageModule } from 'primeng/message';import { ScopePickerComponent } from '../../shared/components/scope-picker/scope-picker.component';
+@Component({standalone:true,imports:[MessageModule,ScopePickerComponent],template:`<header class="page-header"><div><p class="eyebrow">COMING IN PHASE 3</p><h1>Logs</h1><p>The catalog scope control is ready for the deterministic Log Explorer.</p></div></header><app-scope-picker /><p-message severity="info">Log ingestion is operational; interactive search arrives in Phase 3.</p-message>`}) export class LogsPlaceholderComponent{}
+

@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://logatron.local.test/schemas/dead-letter-event-v1","type":"object","required":["schemaVersion","eventId","failureStage","failureCode","timestamp","redactedPayloadPreview","payloadHash"],"properties":{"schemaVersion":{"const":1}},"additionalProperties":true}

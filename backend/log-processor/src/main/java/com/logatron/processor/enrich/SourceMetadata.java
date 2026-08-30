@@ -1,0 +1,3 @@
+package com.logatron.processor.enrich;
+import com.logatron.contracts.ingestion.ParserProfile;import java.util.UUID;
+public record SourceMetadata(UUID companyId,String company,UUID projectId,String project,String classification,UUID environmentId,String environment,UUID serverId,String server,String hostname,String serverIp,UUID serviceId,String service,UUID serviceInstanceId,String serviceInstance,UUID logSourceId,String logFile,String logType,ParserProfile parserProfile){}

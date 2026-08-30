@@ -1,0 +1,53 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  file_storage:
+    directory: /var/lib/otelcol/file_storage
+    create_directory: true
+receivers:
+  filelog:
+    include: [/logs/*/*.log]
+    start_at: beginning
+    include_file_path: true
+    storage: file_storage
+    multiline:
+      line_start_pattern: '^\{'
+  hostmetrics:
+    collection_interval: 15s
+    scrapers:
+      cpu: {}
+      memory: {}
+      load: {}
+      filesystem: {}
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 128
+  batch:
+    timeout: 500ms
+    send_batch_size: 100
+exporters:
+  otlp:
+    endpoint: otel-gateway:4317
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      storage: file_storage
+      queue_size: 5000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 10s
+      max_elapsed_time: 0s
+service:
+  extensions: [health_check,file_storage]
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors: [memory_limiter,batch]
+      exporters: [otlp]
+    metrics:
+      receivers: [hostmetrics]
+      processors: [memory_limiter,batch]
+      exporters: [otlp]

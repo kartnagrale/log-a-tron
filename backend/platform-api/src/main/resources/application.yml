@@ -1,0 +1,77 @@
+spring:
+  application:
+    name: log-a-tron-platform-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/logatron}
+    username: ${DB_USERNAME:logatron}
+    password: ${DB_PASSWORD:change-me-local}
+    hikari:
+      connection-timeout: 5000
+      validation-timeout: 3000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER_URI:https://identity.invalid/real-issuer-required}
+          audiences: ${OIDC_AUDIENCE:log-a-tron-api}
+server:
+  port: ${BACKEND_PORT:8080}
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE_PROBABILITY:1.0}
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+logatron:
+  cors:
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:4200}
+  log-query:
+    clickhouse-url: ${CLICKHOUSE_URL:http://localhost:8123}
+    database: ${CLICKHOUSE_DATABASE:logatron}
+    username: ${CLICKHOUSE_QUERY_USER:${CLICKHOUSE_USER:logatron_ingest}}
+    password: ${CLICKHOUSE_QUERY_PASSWORD:${CLICKHOUSE_PASSWORD:change-me-local}}
+    query-timeout: ${CLICKHOUSE_QUERY_TIMEOUT:5s}
+    max-result-bytes: ${CLICKHOUSE_MAX_RESULT_BYTES:8388608}
+    max-concurrent-queries: ${CLICKHOUSE_MAX_CONCURRENT_QUERIES:8}
+    live-max-duration: ${LIVE_MAX_DURATION:5m}
+    live-poll-interval: ${LIVE_POLL_INTERVAL:1s}
+    live-buffer-cap: ${LIVE_BUFFER_CAP:200}
+    max-live-connections: ${LIVE_MAX_CONNECTIONS:4}
+  trace-query:
+    tempo-url: ${TEMPO_URL:http://localhost:3200}
+    timeout: ${TEMPO_QUERY_TIMEOUT:5s}
+  investigation:
+    prometheus-url: ${PROMETHEUS_URL:http://localhost:9090}
+    metric-timeout: ${PROMETHEUS_QUERY_TIMEOUT:5s}
+    max-evidence-items: ${INVESTIGATION_MAX_EVIDENCE_ITEMS:60}
+    ai-enabled: ${AI_ENABLED:true}
+    ai-provider: ${AI_PROVIDER:deterministic-stub}
+    ai-model: ${AI_MODEL:grounded-template-v1}
+logging:
+  pattern:
+    level: "%5p [traceId=%X{traceId:-} correlationId=%X{correlationId:-}]"

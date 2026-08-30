@@ -1,0 +1,3 @@
+package com.logatron.catalog.persistence;
+import org.springframework.data.jpa.repository.*;import org.springframework.data.repository.query.Param;import java.util.*;
+public interface ServiceInstanceRepository extends JpaRepository<ServiceInstanceEntity,UUID>{@Query("select i from ServiceInstanceEntity i join fetch i.service join fetch i.server s join fetch s.environment where s.id=:serverId order by i.instanceKey") List<ServiceInstanceEntity> findDetailedByServerId(@Param("serverId")UUID serverId);List<ServiceInstanceEntity> findByServiceIdOrderByInstanceKey(UUID serviceId);long countByServiceProjectId(UUID projectId);}

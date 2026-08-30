@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: log-a-tron-log-processor
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/logatron}
+    username: ${DB_USERNAME:logatron}
+    password: ${DB_PASSWORD:change-me-local}
+    hikari:
+      connection-timeout: 5000
+      maximum-pool-size: 4
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:log-processor-v1}
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: ${PROCESSOR_BATCH_SIZE:200}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+    listener:
+      ack-mode: manual_immediate
+server:
+  port: ${PROCESSOR_PORT:8081}
+management:
+  endpoints.web.exposure.include: health,info,metrics,prometheus
+  endpoint.health.probes.enabled: true
+  endpoint.health.group.liveness.include: livenessState
+  endpoint.health.group.readiness.include: readinessState,clickHouse
+  health:
+    livenessstate.enabled: true
+    readinessstate.enabled: true
+logatron:
+  ingestion:
+    max-event-bytes: ${MAX_EVENT_BYTES:262144}
+    max-stack-trace-bytes: ${MAX_STACK_TRACE_BYTES:65536}
+    batch-size: ${PROCESSOR_BATCH_SIZE:200}
+    batch-bytes: ${PROCESSOR_BATCH_BYTES:4194304}
+    flush-interval: ${PROCESSOR_FLUSH_INTERVAL:1s}
+    dedup-window: ${PROCESSOR_DEDUP_WINDOW:10m}
+  masking:
+    enabled: true
+    replacement: "[REDACTED]"
+  metadata-cache:
+    ttl: ${METADATA_CACHE_TTL:60s}
+  kafka:
+    raw: ${KAFKA_RAW_TOPIC:logs.raw.v1}
+    enriched: ${KAFKA_ENRICHED_TOPIC:logs.enriched.v1}
+    errors: ${KAFKA_ERRORS_TOPIC:logs.errors.v1}
+    dlq: ${KAFKA_DLQ_TOPIC:logs.dlq.v1}
+  clickhouse:
+    url: ${CLICKHOUSE_URL:http://localhost:8123}
+    database: ${CLICKHOUSE_DATABASE:logatron}
+    user: ${CLICKHOUSE_USER:logatron_ingest}
+    password: ${CLICKHOUSE_PASSWORD:change-me-local}
+    request-timeout: ${CLICKHOUSE_REQUEST_TIMEOUT:10s}

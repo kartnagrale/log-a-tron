@@ -1,0 +1,3 @@
+package com.logatron.processor.deduplicate;
+import com.logatron.processor.configuration.IngestionProperties;import org.springframework.stereotype.Component;import java.time.*;import java.util.UUID;import java.util.concurrent.ConcurrentHashMap;
+@Component public class DuplicateTracker {private final ConcurrentHashMap<UUID,Instant> seen=new ConcurrentHashMap<>();private final Duration window;public DuplicateTracker(IngestionProperties p){window=p.ingestion().dedupWindow();}public boolean seen(UUID id){Instant now=Instant.now(),cut=now.minus(window);seen.entrySet().removeIf(e->e.getValue().isBefore(cut));return seen.putIfAbsent(id,now)!=null;}public int size(){return seen.size();}}

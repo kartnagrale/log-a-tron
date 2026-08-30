@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://logatron.local.test/schemas/canonical-log-event-v1","type":"object","required":["schemaVersion","eventId","timestamp","observedTimestamp","ingestedAt","projectId","environmentId","serviceId","level","message","fingerprint"],"properties":{"schemaVersion":{"const":1}},"additionalProperties":true}

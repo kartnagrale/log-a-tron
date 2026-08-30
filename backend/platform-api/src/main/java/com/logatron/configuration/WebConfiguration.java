@@ -1,0 +1,3 @@
+package com.logatron.configuration;
+import com.logatron.audit.web.AdministrativeDenialAuditInterceptor;import org.springframework.context.annotation.Configuration;import org.springframework.web.servlet.config.annotation.*;
+@Configuration public class WebConfiguration implements WebMvcConfigurer{private final AdministrativeDenialAuditInterceptor denialAudit;public WebConfiguration(AdministrativeDenialAuditInterceptor denialAudit){this.denialAudit=denialAudit;}@Override public void addInterceptors(InterceptorRegistry registry){registry.addInterceptor(denialAudit).addPathPatterns("/api/v1/admin/**");}}

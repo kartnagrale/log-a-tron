@@ -1,0 +1,51 @@
+# Secrets and local environment overrides
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+secrets/
+
+# IDE and OS metadata
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Build output and dependency caches
+**/target/
+**/node_modules/
+**/dist/
+**/.angular/
+**/.next/
+**/coverage/
+.pnpm-store/
+backend/.m2/
+**/__pycache__/
+*.py[cod]
+
+# Docker and local runtime data
+.docker/
+.smoke-postgres/
+docker-data/
+/data/
+/logs/
+/tmp/
+/temp/
+*.pid
+
+# Generated logs and diagnostics
+*.log
+*.log.*
+hs_err_pid*
+
+# Temporary Codex work files
+.codex/tmp/
+.codex/cache/
+.codex/sessions/
+.codex-worktree/
+codex-*.tmp

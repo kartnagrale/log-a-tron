@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    platform: log-a-tron
+scrape_configs:
+  - job_name: log-processor
+    metrics_path: /actuator/prometheus
+    static_configs: [{targets: ['log-processor:8081']}]
+  - job_name: otel-gateway-signals
+    static_configs: [{targets: ['otel-gateway:9464']}]

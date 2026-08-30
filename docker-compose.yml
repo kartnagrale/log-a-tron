@@ -1,0 +1,259 @@
+name: log-a-tron
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-logatron}
+      POSTGRES_USER: ${POSTGRES_USER:-logatron}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local}
+    ports: ["${POSTGRES_PORT:-5432}:5432"]
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    networks: [data]
+
+  kafka:
+    image: apache/kafka:3.9.1
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:${KAFKA_PORT:-29092}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_HOURS: 72
+    ports: ["${KAFKA_PORT:-29092}:29092"]
+    volumes: [kafka-data:/var/lib/kafka/data]
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+    networks: [data]
+
+  kafka-init:
+    image: apache/kafka:3.9.1
+    depends_on:
+      kafka: {condition: service_healthy}
+    entrypoint: ["/bin/bash","-ec"]
+    command:
+      - |
+        for spec in "logs.raw.v1:6:259200000" "logs.enriched.v1:6:259200000" "logs.errors.v1:3:86400000" "logs.dlq.v1:3:1209600000"; do
+          IFS=: read topic partitions retention <<< "$$spec"
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic "$$topic" --partitions "$$partitions" --replication-factor 1 --config cleanup.policy=delete --config retention.ms="$$retention"
+        done
+    restart: "no"
+    networks: [data]
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.8-alpine
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE:-logatron}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-logatron_ingest}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-me-local}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ports:
+      - "${CLICKHOUSE_HTTP_PORT:-8123}:8123"
+      - "${CLICKHOUSE_NATIVE_PORT:-9000}:9000"
+    volumes: [clickhouse-data:/var/lib/clickhouse]
+    healthcheck:
+      test: ["CMD-SHELL", "clickhouse-client --user $${CLICKHOUSE_USER} --password $${CLICKHOUSE_PASSWORD} --query 'SELECT 1' >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+    restart: unless-stopped
+    networks: [data]
+
+  clickhouse-migrate:
+    image: clickhouse/clickhouse-server:25.8-alpine
+    depends_on:
+      clickhouse: {condition: service_healthy}
+    volumes: [./infrastructure/clickhouse/migrations:/migrations:ro]
+    entrypoint: ["/bin/sh","-ec"]
+    command:
+      - |
+        for file in /migrations/*.sql; do
+          echo "Applying $$file"
+          clickhouse-client --host clickhouse --user "${CLICKHOUSE_USER:-logatron_ingest}" --password "${CLICKHOUSE_PASSWORD:-change-me-local}" --multiquery < "$$file"
+        done
+    restart: "no"
+    networks: [data]
+
+  tempo:
+    build: ./infrastructure/tempo
+    image: log-a-tron-tempo
+    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    volumes:
+      - ./infrastructure/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3200/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 15s
+    restart: unless-stopped
+    networks: [data]
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=7d"]
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports: ["${PROMETHEUS_PORT:-9090}:9090"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped
+    networks: [data,ingress]
+
+  platform-api:
+    build: {context: ./backend, dockerfile: platform-api/Dockerfile}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${AUTH_PROFILE:-dev-auth}
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-logatron}
+      DB_USERNAME: ${POSTGRES_USER:-logatron}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local}
+      DEV_JWT_SECRET: ${DEV_JWT_SECRET:-local-development-secret-must-be-at-least-32-bytes}
+      OIDC_ISSUER_URI: ${OIDC_ISSUER_URI:-https://identity.invalid/real-issuer-required}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:-log-a-tron-api}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:4200}
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_DATABASE: ${CLICKHOUSE_DATABASE:-logatron}
+      CLICKHOUSE_QUERY_USER: ${CLICKHOUSE_USER:-logatron_ingest}
+      CLICKHOUSE_QUERY_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-me-local}
+      TEMPO_URL: http://tempo:3200
+      PROMETHEUS_URL: http://prometheus:9090
+    ports: ["${BACKEND_PORT:-8080}:8080"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      clickhouse-migrate: {condition: service_completed_successfully}
+      tempo: {condition: service_healthy}
+      prometheus: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+    networks: [data,ingress]
+
+  log-processor:
+    build: {context: ./backend, dockerfile: log-processor/Dockerfile}
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-logatron}
+      DB_USERNAME: ${POSTGRES_USER:-logatron}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_DATABASE: ${CLICKHOUSE_DATABASE:-logatron}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-logatron_ingest}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-me-local}
+      PROCESSOR_BATCH_SIZE: ${PROCESSOR_BATCH_SIZE:-200}
+    ports: ["${PROCESSOR_PORT:-8081}:8081"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      kafka-init: {condition: service_completed_successfully}
+      clickhouse-migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8081/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+    networks: [data,ingress]
+
+  otel-gateway:
+    build: ./infrastructure/otel
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./infrastructure/otel/gateway.yaml:/etc/otelcol/config.yaml:ro
+      - otel-gateway-state:/var/lib/otelcol
+    ports:
+      - "${OTEL_GRPC_PORT:-4317}:4317"
+      - "${OTEL_HTTP_PORT:-4318}:4318"
+    depends_on:
+      kafka-init: {condition: service_completed_successfully}
+      tempo: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "/bin/wget", "-q", "--spider", "http://localhost:13133/"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [data,ingress]
+
+  otel-agent:
+    build: ./infrastructure/otel
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./infrastructure/otel/agent.yaml:/etc/otelcol/config.yaml:ro
+      - generator-logs:/logs:ro
+      - otel-agent-state:/var/lib/otelcol
+    depends_on:
+      otel-gateway: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "/bin/wget", "-q", "--spider", "http://localhost:13133/"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [data]
+
+  log-generator:
+    build: ./tools/log-generator
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-gateway:4318
+    volumes: [generator-logs:/logs]
+    depends_on:
+      otel-agent: {condition: service_healthy}
+      log-processor: {condition: service_healthy}
+    restart: "no"
+    networks: [data]
+
+  web-ui:
+    build: {context: ./frontend}
+    ports: ["${FRONTEND_PORT:-4200}:8080"]
+    depends_on:
+      platform-api: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    networks: [ingress]
+
+volumes:
+  postgres-data:
+  kafka-data:
+  clickhouse-data:
+  tempo-data:
+  prometheus-data:
+  otel-agent-state:
+  otel-gateway-state:
+  generator-logs:
+networks:
+  data: {internal: true}
+  ingress:

@@ -1,0 +1,12 @@
+package com.logatron.logquery.infrastructure;
+import com.logatron.auth.application.EffectiveScope;import com.logatron.auth.domain.PlatformRole;import com.logatron.common.error.ApiException;import com.logatron.logquery.domain.LogSearchCriteria;import org.junit.jupiter.api.Test;import java.time.*;import java.util.*;import static org.assertj.core.api.Assertions.*;
+class AuthorizedLogSqlTest{
+ private static final UUID PROJECT=UUID.fromString("10000000-0000-0000-0000-000000000001"),OTHER=UUID.fromString("10000000-0000-0000-0000-000000000002"),ENV=UUID.fromString("20000000-0000-0000-0000-000000000003"),SERVICE=UUID.fromString("40000000-0000-0000-0000-000000000008");
+ private final AuthorizedLogSql builder=new AuthorizedLogSql();private final Clock clock=Clock.fixed(Instant.parse("2026-08-29T08:00:00Z"),ZoneOffset.UTC);
+ @Test void everyQueryContainsOnlyEffectiveProjectEnvironmentAndService(){var q=builder.filtered(scope(),criteria(PROJECT,ENV).normalize(clock));assertThat(q.where()).contains("project_id={p0:UUID}","environment_id={e0:UUID}","service_id IN ({s0:UUID})");assertThat(q.parameters()).containsEntry("p0",PROJECT.toString()).containsEntry("e0",ENV.toString()).containsValue(SERVICE.toString()).doesNotContainValue(OTHER.toString());}
+ @Test void dateTime64ParametersUseClickHouseMillisecondUtcFormat(){var q=builder.filtered(scope(),criteria(PROJECT,ENV).normalize(clock));assertThat(q.parameters()).containsEntry("from","2026-08-29 07:30:00.000").containsEntry("to","2026-08-29 08:00:00.000");}
+ @Test void crossProjectAndUnauthorizedEnvironmentFailClosed(){assertThatThrownBy(()->builder.filtered(scope(),criteria(OTHER,null).normalize(clock))).isInstanceOf(ApiException.class);assertThatThrownBy(()->builder.filtered(scope(),criteria(PROJECT,UUID.randomUUID()).normalize(clock))).isInstanceOf(ApiException.class);}
+ @Test void absentProjectScopeFailsClosed(){assertThatThrownBy(()->builder.filtered(new EffectiveScope(false,Map.of()),criteria(null,null).normalize(clock))).isInstanceOf(ApiException.class);}
+ private EffectiveScope scope(){return new EffectiveScope(false,Map.of(PROJECT,new EffectiveScope.ProjectScope(PROJECT,Set.of(PlatformRole.PRODUCTION_SUPPORT),Set.of(ENV),Map.of(ENV,Set.of(SERVICE)),false)));}
+ private LogSearchCriteria criteria(UUID project,UUID environment){return new LogSearchCriteria(project,environment,null,null,null,null,null,null,null,null,null,null,null,null,null,null,100,null);}
+}

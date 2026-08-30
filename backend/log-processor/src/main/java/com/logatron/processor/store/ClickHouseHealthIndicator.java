@@ -1,0 +1,3 @@
+package com.logatron.processor.store;
+import org.springframework.boot.actuate.health.*;import org.springframework.stereotype.Component;
+@Component("clickHouse") public class ClickHouseHealthIndicator implements HealthIndicator {private final ClickHouseStore store;public ClickHouseHealthIndicator(ClickHouseStore store){this.store=store;}public Health health(){return store.ping()?Health.up().build():Health.down().withDetail("reason","ClickHouse is not reachable").build();}}

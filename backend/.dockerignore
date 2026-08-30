@@ -1,0 +1,6 @@
+.m2/
+**/target/
+!platform-api/target/
+!platform-api/target/platform-api-0.1.0-SNAPSHOT.jar
+.idea/
+*.iml

@@ -1,0 +1,9 @@
+package com.logatron.logquery.persistence;
+import com.fasterxml.jackson.databind.JsonNode;import com.logatron.auth.persistence.UserAccountEntity;import com.logatron.catalog.persistence.ProjectEntity;import jakarta.persistence.*;import org.hibernate.annotations.JdbcTypeCode;import org.hibernate.type.SqlTypes;import java.time.Instant;import java.util.UUID;
+@Entity @Table(name="saved_search")
+public class SavedSearchEntity{
+ @Id private UUID id;@ManyToOne(fetch=FetchType.LAZY,optional=false)@JoinColumn(name="owner_user_id")private UserAccountEntity owner;@ManyToOne(fetch=FetchType.LAZY,optional=false)@JoinColumn(name="project_id")private ProjectEntity project;@Column(nullable=false,length=120)private String name;@Column(nullable=false,length=20)private String visibility;@JdbcTypeCode(SqlTypes.JSON)@Column(nullable=false,columnDefinition="jsonb")private JsonNode criteria;@Column(name="created_at",nullable=false)private Instant createdAt;@Column(name="updated_at",nullable=false)private Instant updatedAt;
+ protected SavedSearchEntity(){}public SavedSearchEntity(UserAccountEntity owner,ProjectEntity project,String name,String visibility,JsonNode criteria){id=UUID.randomUUID();this.owner=owner;this.project=project;update(name,visibility,criteria);createdAt=updatedAt;}
+ public void update(String name,String visibility,JsonNode criteria){this.name=name;this.visibility=visibility;this.criteria=criteria;updatedAt=Instant.now();}
+ public UUID getId(){return id;}public UserAccountEntity getOwner(){return owner;}public ProjectEntity getProject(){return project;}public String getName(){return name;}public String getVisibility(){return visibility;}public JsonNode getCriteria(){return criteria;}public Instant getCreatedAt(){return createdAt;}public Instant getUpdatedAt(){return updatedAt;}
+}

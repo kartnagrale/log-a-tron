@@ -1,0 +1,3 @@
+package com.logatron.processor.deduplicate;
+import com.logatron.contracts.ingestion.CanonicalLogEvent;import org.springframework.stereotype.Component;import java.nio.charset.StandardCharsets;import java.security.*;import java.util.HexFormat;
+@Component public class Fingerprinter {public String fingerprint(CanonicalLogEvent e){String stable=String.join("\u001f",text(e.projectId()),text(e.serviceId()),text(e.timestamp()),text(e.level()),text(e.logger()),text(e.message()),text(e.traceId()),text(e.sourceOffset()));try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(stable.getBytes(StandardCharsets.UTF_8)));}catch(NoSuchAlgorithmException x){throw new IllegalStateException(x);}}private String text(Object o){return o==null?"":o.toString();}}

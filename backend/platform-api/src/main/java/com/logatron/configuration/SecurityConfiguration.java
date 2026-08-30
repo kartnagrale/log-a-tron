@@ -1,0 +1,10 @@
+package com.logatron.configuration;
+
+import com.fasterxml.jackson.databind.ObjectMapper;import com.logatron.common.error.*;import jakarta.servlet.http.HttpServletResponse;import org.slf4j.MDC;import org.springframework.context.annotation.*;import org.springframework.http.MediaType;import org.springframework.security.config.annotation.web.builders.HttpSecurity;import org.springframework.security.config.http.SessionCreationPolicy;import org.springframework.security.web.SecurityFilterChain;import org.springframework.web.cors.*;import java.time.Instant;import java.util.List;
+
+@Configuration public class SecurityConfiguration{
+ @Bean SecurityFilterChain security(HttpSecurity http,ObjectMapper mapper)throws Exception{return http.csrf(c->c.disable()).cors(c->{}).sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(a->a.requestMatchers("/actuator/health/**","/swagger-ui/**","/swagger-ui.html","/v3/api-docs/**","/api/v1/dev-auth/**").permitAll().anyRequest().authenticated()).oauth2ResourceServer(o->o.jwt(j->{}).authenticationEntryPoint((req,res,ex)->write(mapper,res,401,ErrorCode.UNAUTHENTICATED,"Authentication is required."))).exceptionHandling(e->e.accessDeniedHandler((req,res,ex)->write(mapper,res,403,ErrorCode.ACCESS_DENIED,"Access is denied."))).build();}
+ @Bean CorsConfigurationSource corsConfigurationSource(CorsProperties properties){var c=new CorsConfiguration();c.setAllowedOrigins(properties.allowedOrigins());c.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));c.setAllowedHeaders(List.of("Authorization","Content-Type","X-Correlation-ID"));c.setExposedHeaders(List.of("X-Correlation-ID"));c.setAllowCredentials(false);var source=new UrlBasedCorsConfigurationSource();source.registerCorsConfiguration("/**",c);return source;}
+ private void write(ObjectMapper mapper,HttpServletResponse response,int status,ErrorCode code,String message)throws java.io.IOException{response.setStatus(status);response.setContentType(MediaType.APPLICATION_JSON_VALUE);mapper.writeValue(response.getOutputStream(),new ApiError(Instant.now(),status,code.name(),message,MDC.get("traceId"),List.of()));}
+}
+

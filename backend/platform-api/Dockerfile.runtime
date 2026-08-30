@@ -1,0 +1,7 @@
+FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S logatron && adduser -S logatron -G logatron
+WORKDIR /app
+COPY platform-api/target/platform-api-0.1.0-SNAPSHOT.jar app.jar
+USER logatron
+EXPOSE 8080
+ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","/app/app.jar"]
