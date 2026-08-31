@@ -1,0 +1,4 @@
+.admin-columns .p-datatable-table,.catalog-grid .p-datatable-table{min-width:100%}
+.admin-columns .p-datatable-table-container,.catalog-grid .p-datatable-table-container{overflow-x:auto;scrollbar-width:thin}
+.service-ranking .ranking-row>div{min-width:0}.service-ranking .ranking-row strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1400px){.admin-columns,.catalog-grid{grid-template-columns:1fr}}

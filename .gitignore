@@ -43,6 +43,10 @@ docker-data/
 *.log.*
 hs_err_pid*
 
+# Generated demo and document outputs
+/demo-video/output/
+/output/
+
 # Temporary Codex work files
 .codex/tmp/
 .codex/cache/

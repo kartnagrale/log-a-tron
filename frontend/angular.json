@@ -14,18 +14,65 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "assets": [{"glob": "**/*", "input": "public"}],
-            "styles": ["node_modules/primeicons/primeicons.css", "src/styles.css", "src/investigation.css"]
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "node_modules/primeicons/primeicons.css",
+              "src/styles.css",
+              "src/investigation.css",
+              "src/role-ux.css",
+              "src/visual-fixes.css"
+            ]
           },
           "configurations": {
-            "production": {"budgets": [{"type": "initial", "maximumWarning": "900kB", "maximumError": "1.5MB"}], "outputHashing": "all"},
-            "development": {"optimization": false, "sourceMap": true}
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "900kB",
+                  "maximumError": "1.5MB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "sourceMap": true
+            }
           },
           "defaultConfiguration": "production"
         },
-        "serve": {"builder": "@angular/build:dev-server", "options": {"proxyConfig": "proxy.conf.json"}, "configurations": {"production": {"buildTarget": "web-ui:build:production"}, "development": {"buildTarget": "web-ui:build:development"}}, "defaultConfiguration": "development"},
-        "test": {"builder": "@angular/build:unit-test", "options": {"tsConfig": "tsconfig.spec.json", "buildTarget": "web-ui:build:development"}}
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "web-ui:build:production"
+            },
+            "development": {
+              "buildTarget": "web-ui:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "tsconfig.spec.json",
+            "buildTarget": "web-ui:build:development",
+            "runnerConfig": "vitest.config.ts"
+          }
+        }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
