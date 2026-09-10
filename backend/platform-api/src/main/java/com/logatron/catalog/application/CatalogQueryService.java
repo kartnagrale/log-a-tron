@@ -18,6 +18,6 @@ import com.logatron.auth.application.*;import com.logatron.catalog.persistence.*
  private ServerView serverView(ServerEntity s){return new ServerView(s.getId(),s.getEnvironment().getId(),s.getHostId(),s.getHostname(),s.getIpAddress(),s.getStatus(),s.getLabels(),s.getCollectorStatus(),s.getCollectorLastSeenAt());}
  private ServiceView serviceView(ServiceEntity s){return new ServiceView(s.getId(),s.getProject().getId(),s.getServiceKey(),s.getDisplayName(),s.getOwner(),s.getCriticality(),s.getStatus(),s.getLabels());}
  private ServiceInstanceView instanceView(ServiceInstanceEntity i){return new ServiceInstanceView(i.getId(),i.getService().getId(),i.getService().getDisplayName(),i.getServer().getId(),i.getServer().getHostname(),i.getInstanceKey(),i.getVersion(),i.getStatus(),i.getFirstSeenAt(),i.getLastSeenAt());}
- private LogSourceView sourceView(LogSourceEntity l){return new LogSourceView(l.getId(),l.getServiceInstance().getId(),l.getPathPattern(),l.getLogType(),l.getParserProfile(),l.getMultilineRule(),l.isEnabled(),l.getConfigVersion());}
+ private LogSourceView sourceView(LogSourceEntity l){return new LogSourceView(l.getId(),l.getServiceInstance().getId(),l.getPathPattern(),l.getLogType(),l.getParserProfile(),l.getMultilineRule(),l.getTimestampTimezone(),l.isEnabled(),l.getConfigVersion());}
 }
 
