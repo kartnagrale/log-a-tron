@@ -1,3 +1,63 @@
 package com.logatron.processor.parse;
-import com.fasterxml.jackson.databind.*;import com.logatron.contracts.ingestion.*;import org.springframework.stereotype.Component;import java.util.*;
-@Component public class JsonLogParser implements LogParser {private final ObjectMapper mapper;private final TimestampNormalizer time;public JsonLogParser(ObjectMapper mapper,TimestampNormalizer time){this.mapper=mapper;this.time=time;}public boolean supports(ParserProfile p){return p==ParserProfile.JSON;}public ParsedLog parse(RawLogEnvelope e){try{JsonNode n=mapper.readTree(e.payload());String message=text(n,"message");if(message==null)throw new ProcessingException("EMPTY_MESSAGE","JSON message is required");Map<String,String>a=new LinkedHashMap<>();n.fields().forEachRemaining(x->{if(x.getValue().isValueNode())a.put(x.getKey(),x.getValue().asText());});String stack=text(n,"stackTrace","exception.stacktrace");String type=text(n,"exceptionType","exception.type");if(type==null&&stack!=null)type=exceptionType(stack);return new ParsedLog(time.parse(text(n,"timestamp","@timestamp")),text(n,"level","severity"),text(n,"logger"),text(n,"thread"),message,type,stack,text(n,"traceId","trace_id"),text(n,"spanId","span_id"),text(n,"traceFlags","trace_flags"),text(n,"requestId","request_id"),text(n,"correlationId","correlation_id"),text(n,"transactionId","transaction_id"),text(n,"orderToken","order_token"),text(n,"auctionId","auction_id"),a);}catch(ProcessingException x){throw x;}catch(Exception x){throw new ProcessingException("MALFORMED_JSON","JSON payload cannot be parsed");}}private String text(JsonNode n,String...keys){for(String k:keys){JsonNode v=n.get(k);if(v!=null&&!v.isNull()&&!v.asText().isBlank())return v.asText();}return null;}private String exceptionType(String s){var m=java.util.regex.Pattern.compile("(?m)^([a-zA-Z_$][\\w$]*(?:\\.[a-zA-Z_$][\\w$]*)+(?:Exception|Error))(?::|$)").matcher(s);return m.find()?m.group(1):null;}}
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.logatron.contracts.ingestion.ParserProfile;
+import com.logatron.contracts.ingestion.RawLogEnvelope;
+import org.springframework.stereotype.Component;
+import java.time.ZoneId;
+import java.util.*;
+
+@Component
+public class JsonLogParser implements LogParser {
+    private final ObjectMapper mapper;
+    private final TimestampNormalizer time;
+
+    public JsonLogParser(ObjectMapper mapper, TimestampNormalizer time) {
+        this.mapper = mapper;
+        this.time = time;
+    }
+
+    public boolean supports(ParserProfile p) {
+        return p == ParserProfile.JSON;
+    }
+
+    public ParsedLog parse(RawLogEnvelope e, ZoneId sourceZone) {
+        try {
+            JsonNode n = mapper.readTree(e.payload());
+            String message = text(n, "message");
+            if (message == null) throw new ProcessingException("EMPTY_MESSAGE", "JSON message is required");
+            Map<String, String> attributes = new LinkedHashMap<>();
+            n.fields().forEachRemaining(x -> {
+                if (x.getValue().isValueNode()) attributes.put(x.getKey(), x.getValue().asText());
+            });
+            String stack = text(n, "stackTrace", "exception.stacktrace");
+            String type = text(n, "exceptionType", "exception.type");
+            if (type == null && stack != null) type = exceptionType(stack);
+            return new ParsedLog(
+                    time.parse(text(n, "timestamp", "@timestamp"), sourceZone),
+                    text(n, "level", "severity"), text(n, "logger"), text(n, "thread"), message,
+                    type, stack, text(n, "traceId", "trace_id"), text(n, "spanId", "span_id"),
+                    text(n, "traceFlags", "trace_flags"), text(n, "requestId", "request_id"),
+                    text(n, "correlationId", "correlation_id"), text(n, "transactionId", "transaction_id"),
+                    text(n, "orderToken", "order_token"), text(n, "auctionId", "auction_id"), attributes);
+        } catch (ProcessingException x) {
+            throw x;
+        } catch (Exception x) {
+            throw new ProcessingException("MALFORMED_JSON", "JSON payload cannot be parsed");
+        }
+    }
+
+    private String text(JsonNode n, String... keys) {
+        for (String k : keys) {
+            JsonNode v = n.get(k);
+            if (v != null && !v.isNull() && !v.asText().isBlank()) return v.asText();
+        }
+        return null;
+    }
+
+    private String exceptionType(String s) {
+        var m = java.util.regex.Pattern.compile("(?m)^([a-zA-Z_$][\\w$]*(?:\\.[a-zA-Z_$][\\w$]*)+(?:Exception|Error))(?::|$)").matcher(s);
+        return m.find() ? m.group(1) : null;
+    }
+}
