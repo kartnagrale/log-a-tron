@@ -6,7 +6,7 @@ import com.logatron.processor.configuration.IngestionProperties;
 import com.logatron.processor.parse.ProcessingException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import java.time.Instant;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,23 +40,41 @@ public class MetadataResolver {
     synchronized void refresh() {
         if (Instant.now().isBefore(expires)) return;
         String sql = "select c.id,c.name,p.id,p.name,p.classification,e.id,e.code,n.id,n.host_id,n.hostname,n.ip_address,"
-                + "s.id,s.service_key,i.id,i.instance_key,l.id,l.path_pattern,l.log_type,l.parser_profile "
+                + "s.id,s.service_key,i.id,i.instance_key,l.id,l.path_pattern,l.log_type,l.parser_profile,l.timestamp_timezone "
                 + "from log_source l join service_instance i on i.id=l.service_instance_id "
                 + "join service_definition s on s.id=i.service_id join server_node n on n.id=i.server_id "
                 + "join environment e on e.id=n.environment_id join project p on p.id=e.project_id "
                 + "join company c on c.id=p.company_id where l.enabled=true";
         Map<UUID, SourceMetadata> next = new ConcurrentHashMap<>();
         jdbc.query(sql, rs -> {
-            ParserProfile profile = rs.getString(19).toLowerCase(Locale.ROOT).contains("json") ? ParserProfile.JSON : ParserProfile.PLAINTEXT;
+            ParserProfile profile = parserProfile(rs.getString(19));
+            ZoneId timestampZone = timestampZone(rs.getString(20));
             SourceMetadata metadata = new SourceMetadata(
                     rs.getObject(1, UUID.class), rs.getString(2), rs.getObject(3, UUID.class), rs.getString(4), rs.getString(5),
                     rs.getObject(6, UUID.class), rs.getString(7), rs.getObject(8, UUID.class), rs.getString(9), rs.getString(10),
                     rs.getString(11), rs.getObject(12, UUID.class), rs.getString(13), rs.getObject(14, UUID.class), rs.getString(15),
-                    rs.getObject(16, UUID.class), rs.getString(17), rs.getString(18), profile);
+                    rs.getObject(16, UUID.class), rs.getString(17), rs.getString(18), profile, timestampZone);
             next.put(metadata.logSourceId(), metadata);
         });
         cache = Map.copyOf(next);
         expires = Instant.now().plus(properties.metadataCache().ttl());
+    }
+
+    private ParserProfile parserProfile(String value) {
+        try {
+            return ParserProfile.fromExternalName(value);
+        } catch (IllegalArgumentException ex) {
+            throw new ProcessingException("UNSUPPORTED_PARSER_PROFILE", ex.getMessage());
+        }
+    }
+
+    private ZoneId timestampZone(String value) {
+        String normalized = value == null || value.isBlank() ? "UTC" : value.trim();
+        try {
+            return ZoneId.of(normalized);
+        } catch (DateTimeException ex) {
+            throw new ProcessingException("INVALID_SOURCE_TIMEZONE", "Log source timestamp timezone is invalid: " + normalized);
+        }
     }
 
     public int cachedSources() { return cache.size(); }
