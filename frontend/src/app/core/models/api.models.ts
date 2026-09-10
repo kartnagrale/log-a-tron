@@ -6,7 +6,7 @@ export interface EnvironmentView {id:string;projectId:string;code:string;name:st
 export interface ServerView {id:string;environmentId:string;hostId:string;hostname:string;ipAddress:string;status:string;labels:Record<string,string>;collectorStatus:string}
 export interface ServiceView {id:string;projectId:string;serviceKey:string;displayName:string;owner:string;criticality:string;status:string;labels:Record<string,string>}
 export interface ServiceInstanceView {id:string;serviceId:string;serviceName:string;serverId:string;hostname:string;instanceKey:string;version:string;status:string}
-export interface LogSourceView {id:string;serviceInstanceId:string;pathPattern:string;logType:string;parserProfile:string;multilineRule:string;enabled:boolean;configVersion:number}
+export interface LogSourceView {id:string;serviceInstanceId:string;pathPattern:string;logType:string;parserProfile:string;multilineRule:string;timestampTimezone:string;enabled:boolean;configVersion:number}
 export interface ApiError {timestamp:string;status:number;errorCode:string;message:string;traceId:string;fieldErrors:{field:string;code:string;message:string}[]}
 export interface LogCursor {timestamp:string;eventId:string}
 export interface LogSearchCriteria {projectId?:string|null;environmentId?:string|null;serverId?:string|null;serviceId?:string|null;level?:string|null;from?:string|null;to?:string|null;traceId?:string|null;spanId?:string|null;requestId?:string|null;correlationId?:string|null;transactionId?:string|null;orderToken?:string|null;auctionId?:string|null;exceptionType?:string|null;text?:string|null;pageSize?:number;cursor?:LogCursor|null}
