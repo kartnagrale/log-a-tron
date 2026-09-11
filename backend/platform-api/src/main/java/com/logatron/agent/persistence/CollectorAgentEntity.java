@@ -16,6 +16,8 @@ public class CollectorAgentEntity extends AuditedEntity {
     @OneToOne(fetch=FetchType.LAZY,optional=false) @JoinColumn(name="server_id",nullable=false) private ServerEntity server;
     @Column(name="agent_key",nullable=false,length=160) private String agentKey;
     @Column(name="token_hash",nullable=false,length=64) private String tokenHash;
+    @Column(name="gateway_endpoint",nullable=false,length=255) private String gatewayEndpoint;
+    @Column(name="gateway_insecure",nullable=false) private boolean gatewayInsecure;
     @Enumerated(EnumType.STRING) @Column(nullable=false,length=30) private CollectorStatus status;
     @Column(name="collector_version",length=80) private String collectorVersion;
     @Column(name="applied_config_hash",length=64) private String appliedConfigHash;
@@ -24,14 +26,16 @@ public class CollectorAgentEntity extends AuditedEntity {
 
     protected CollectorAgentEntity() {}
 
-    public CollectorAgentEntity(UUID id,ServerEntity server,String agentKey,String tokenHash){
-        this.id=id;this.server=server;this.agentKey=agentKey;this.tokenHash=tokenHash;this.status=CollectorStatus.UNKNOWN;
+    public CollectorAgentEntity(UUID id,ServerEntity server,String agentKey,String tokenHash,String gatewayEndpoint,boolean gatewayInsecure){
+        this.id=id;this.server=server;this.agentKey=agentKey;this.tokenHash=tokenHash;this.gatewayEndpoint=gatewayEndpoint;this.gatewayInsecure=gatewayInsecure;this.status=CollectorStatus.UNKNOWN;
     }
 
     public UUID getId(){return id;}
     public ServerEntity getServer(){return server;}
     public String getAgentKey(){return agentKey;}
     public String getTokenHash(){return tokenHash;}
+    public String getGatewayEndpoint(){return gatewayEndpoint;}
+    public boolean isGatewayInsecure(){return gatewayInsecure;}
     public CollectorStatus getStatus(){return status;}
     public String getCollectorVersion(){return collectorVersion;}
     public String getAppliedConfigHash(){return appliedConfigHash;}
@@ -39,6 +43,7 @@ public class CollectorAgentEntity extends AuditedEntity {
     public String getLastError(){return lastError;}
 
     public void rotateToken(String tokenHash){this.tokenHash=tokenHash;}
+    public void updateGateway(String endpoint,boolean insecure){this.gatewayEndpoint=endpoint;this.gatewayInsecure=insecure;}
 
     public void heartbeat(CollectorStatus status,String collectorVersion,String appliedConfigHash,String lastError,Instant now){
         this.status=status==null?CollectorStatus.ONLINE:status;
