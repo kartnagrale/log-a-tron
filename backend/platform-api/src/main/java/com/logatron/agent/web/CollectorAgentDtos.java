@@ -10,7 +10,13 @@ public final class CollectorAgentDtos {
 
     public record RegisterAgentRequest(
             @NotNull UUID serverId,
-            @NotBlank @Pattern(regexp="[A-Za-z0-9._-]{3,160}") String agentKey) {}
+            @NotBlank @Pattern(regexp="[A-Za-z0-9._-]{3,160}") String agentKey,
+            @NotBlank @Size(max=255) String gatewayEndpoint,
+            boolean gatewayInsecure) {}
+
+    public record UpdateAgentGatewayRequest(
+            @NotBlank @Size(max=255) String gatewayEndpoint,
+            boolean gatewayInsecure) {}
 
     public record AgentRegistration(AgentView agent,String token) {}
 
@@ -18,6 +24,8 @@ public final class CollectorAgentDtos {
             UUID id,
             UUID serverId,
             String agentKey,
+            String gatewayEndpoint,
+            boolean gatewayInsecure,
             CollectorStatus status,
             Instant lastSeenAt,
             String collectorVersion,
