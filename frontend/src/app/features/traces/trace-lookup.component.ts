@@ -13,8 +13,8 @@ import { Router } from '@angular/router';
     <div><p class="eyebrow">HOW TO USE IT</p><h2>Where does the trace ID come from?</h2></div>
     <div class="trace-help-grid">
       <article><i class="pi pi-search"></i><strong>1. From Log Explorer</strong><p>Open a log row that contains a traceId and choose <b>Open trace</b>. LOG-A-TRON carries the identifier into this screen automatically.</p></article>
-      <article><i class="pi pi-sitemap"></i><strong>2. From an instrumented service</strong><p>The application must emit OpenTelemetry traces to the collector/Tempo. File logs alone cannot create a distributed trace.</p></article>
-      <article><i class="pi pi-shield"></i><strong>3. Add project metadata</strong><p>Instrumented services should send <code>logatron.project.id</code> (or <code>project.id</code>) as an OpenTelemetry resource attribute so authorization can be enforced without relying on a matching log row.</p></article>
+      <article><i class="pi pi-sitemap"></i><strong>2. Instrument the application</strong><p>File logs alone cannot create a distributed trace. Use an OpenTelemetry SDK/agent. A managed shipper accepts OTLP from local applications on <code>127.0.0.1:4317</code> (gRPC) and <code>127.0.0.1:4318</code> (HTTP), then forwards traces to the LOG-A-TRON gateway and Tempo.</p></article>
+      <article><i class="pi pi-shield"></i><strong>3. Ownership is added centrally</strong><p>The managed shipper injects project, environment and server resource metadata before forwarding traces, so the backend can enforce scope without relying on a matching log row. Set a meaningful <code>service.name</code> in each instrumented application.</p></article>
     </div>
   </section>
 `})
