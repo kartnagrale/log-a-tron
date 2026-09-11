@@ -25,4 +25,7 @@ public class CollectorAgentAdminController {
 
     @PostMapping("/collector-agents/{agentId}/rotate-token")
     public AgentRegistration rotate(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID agentId,HttpServletRequest request){return service.rotateToken(jwt,agentId,request);}
+
+    @PutMapping("/collector-agents/{agentId}/gateway")
+    public AgentView gateway(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID agentId,@Valid @RequestBody UpdateAgentGatewayRequest body,HttpServletRequest request){return service.updateGateway(jwt,agentId,body,request);}
 }
