@@ -23,5 +23,6 @@ public class ServerEntity extends AuditedEntity {
     public ServerEntity(UUID id,EnvironmentEntity environment,String hostId,String hostname,String ipAddress,Status status,Map<String,String> labels){this.id=id;this.environment=environment;this.hostId=hostId;this.hostname=hostname;this.ipAddress=ipAddress;this.status=status;this.labels=labels==null?new HashMap<>():new HashMap<>(labels);this.collectorStatus=CollectorStatus.UNKNOWN;}
     public UUID getId(){return id;} public EnvironmentEntity getEnvironment(){return environment;} public String getHostId(){return hostId;} public String getHostname(){return hostname;} public String getIpAddress(){return ipAddress;} public Status getStatus(){return status;} public Map<String,String> getLabels(){return Map.copyOf(labels);} public CollectorStatus getCollectorStatus(){return collectorStatus;} public Instant getCollectorLastSeenAt(){return collectorLastSeenAt;}
     public void update(String hostname,String ipAddress,Status status,Map<String,String> labels){this.hostname=hostname;this.ipAddress=ipAddress;this.status=status;this.labels=labels==null?new HashMap<>():new HashMap<>(labels);}
+    public void collectorHeartbeat(CollectorStatus status,Instant at){this.collectorStatus=status==null?CollectorStatus.ONLINE:status;this.collectorLastSeenAt=at==null?Instant.now():at;}
 }
 
