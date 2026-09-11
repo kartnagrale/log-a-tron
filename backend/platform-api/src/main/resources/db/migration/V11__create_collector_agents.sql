@@ -3,6 +3,8 @@ CREATE TABLE collector_agent (
     server_id UUID NOT NULL UNIQUE REFERENCES server_node(id) ON DELETE CASCADE,
     agent_key VARCHAR(160) NOT NULL UNIQUE,
     token_hash CHAR(64) NOT NULL,
+    gateway_endpoint VARCHAR(255) NOT NULL,
+    gateway_insecure BOOLEAN NOT NULL DEFAULT TRUE,
     status VARCHAR(30) NOT NULL DEFAULT 'UNKNOWN',
     collector_version VARCHAR(80),
     applied_config_hash CHAR(64),
