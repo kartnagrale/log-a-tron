@@ -38,8 +38,8 @@ public class CollectorConfigCompiler {
 
         yaml.append("\nexporters:\n")
                 .append("  otlp/logatron:\n")
-                .append("    endpoint: ").append(q(properties.gatewayEndpoint())).append("\n")
-                .append("    tls:\n      insecure: ").append(properties.gatewayInsecure()).append("\n")
+                .append("    endpoint: ").append(q(agent.getGatewayEndpoint())).append("\n")
+                .append("    tls:\n      insecure: ").append(agent.isGatewayInsecure()).append("\n")
                 .append("    sending_queue:\n      enabled: true\n      queue_size: 10000\n")
                 .append("    retry_on_failure:\n      enabled: true\n      initial_interval: 1s\n      max_interval: 10s\n\n")
                 .append("service:\n  extensions: [file_storage]\n  pipelines:\n");
