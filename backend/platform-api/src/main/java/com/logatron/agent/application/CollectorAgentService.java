@@ -38,7 +38,7 @@ public class CollectorAgentService {
         ServerEntity server=servers.findById(request.serverId()).orElseThrow(ApiException::notFound);AuthenticatedUser actor=admin(jwt,server);
         if(agents.findByServer_Id(server.getId()).isPresent())throw ApiException.invalid("A managed collector agent is already registered for this server.");
         if(agents.findByAgentKey(request.agentKey()).isPresent())throw ApiException.invalid("Agent key is already in use.");
-        String token=newToken();CollectorAgentEntity entity=new CollectorAgentEntity(UUID.randomUUID(),server,request.agentKey().trim(),hash(token));agents.save(entity);
+        String token=newToken();CollectorAgentEntity entity=new CollectorAgentEntity(UUID.randomUUID(),server,request.agentKey().trim(),hash(token),request.gatewayEndpoint().trim(),request.gatewayInsecure());agents.save(entity);
         audit.record(actor,"COLLECTOR_AGENT_REGISTER","COLLECTOR_AGENT",entity.getId(),server.getEnvironment().getProject().getId(),server.getEnvironment().getId(),"SUCCESS",http);
         return new AgentRegistration(view(entity),token);
     }
@@ -53,6 +53,13 @@ public class CollectorAgentService {
         CollectorAgentEntity entity=agents.findById(agentId).orElseThrow(ApiException::notFound);AuthenticatedUser actor=admin(jwt,entity.getServer());String token=newToken();entity.rotateToken(hash(token));
         audit.record(actor,"COLLECTOR_AGENT_TOKEN_ROTATE","COLLECTOR_AGENT",entity.getId(),entity.getServer().getEnvironment().getProject().getId(),entity.getServer().getEnvironment().getId(),"SUCCESS",http);
         return new AgentRegistration(view(entity),token);
+    }
+
+    @Transactional
+    public AgentView updateGateway(Jwt jwt,UUID agentId,UpdateAgentGatewayRequest request,HttpServletRequest http){
+        CollectorAgentEntity entity=agents.findById(agentId).orElseThrow(ApiException::notFound);AuthenticatedUser actor=admin(jwt,entity.getServer());entity.updateGateway(request.gatewayEndpoint().trim(),request.gatewayInsecure());
+        audit.record(actor,"COLLECTOR_AGENT_GATEWAY_UPDATE","COLLECTOR_AGENT",entity.getId(),entity.getServer().getEnvironment().getProject().getId(),entity.getServer().getEnvironment().getId(),"SUCCESS",http);
+        return view(entity);
     }
 
     @Transactional(readOnly=true)
@@ -78,7 +85,7 @@ public class CollectorAgentService {
 
     private AgentView view(CollectorAgentEntity entity){
         var compiled=compiler.compile(entity);Instant seen=entity.getLastSeenAt();CollectorStatus effective=seen==null||seen.isBefore(Instant.now().minusSeconds(Math.max(45,properties.pollSeconds()*4L)))?CollectorStatus.OFFLINE:entity.getStatus();String desired=compiled.sha256();String applied=entity.getAppliedConfigHash();
-        return new AgentView(entity.getId(),entity.getServer().getId(),entity.getAgentKey(),effective,seen,entity.getCollectorVersion(),desired,applied,desired.equals(applied),compiled.sourceCount(),entity.getLastError());
+        return new AgentView(entity.getId(),entity.getServer().getId(),entity.getAgentKey(),entity.getGatewayEndpoint(),entity.isGatewayInsecure(),effective,seen,entity.getCollectorVersion(),desired,applied,desired.equals(applied),compiled.sourceCount(),entity.getLastError());
     }
 
     private AuthenticatedUser admin(Jwt jwt,ServerEntity server){AuthenticatedUser actor=authorization.authenticatedUser(jwt);authorization.requireAdministration(authorization.resolveScope(actor),server.getEnvironment().getProject().getId());return actor;}
