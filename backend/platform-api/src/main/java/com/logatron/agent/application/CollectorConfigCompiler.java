@@ -18,39 +18,46 @@ public class CollectorConfigCompiler {
     private final LogSourceRepository sources;
     private final AgentManagementProperties properties;
 
-    public CollectorConfigCompiler(LogSourceRepository sources,AgentManagementProperties properties){
-        this.sources=sources;this.properties=properties;
-    }
+    public CollectorConfigCompiler(LogSourceRepository sources,AgentManagementProperties properties){this.sources=sources;this.properties=properties;}
 
     public CompiledCollectorConfig compile(CollectorAgentEntity agent){
         List<LogSourceEntity> rows=sources.findEnabledDetailedByServerId(agent.getServer().getId());
+        var server=agent.getServer();var environment=server.getEnvironment();var project=environment.getProject();
         StringBuilder yaml=new StringBuilder();
         yaml.append("extensions:\n")
                 .append("  file_storage:\n")
                 .append("    directory: ").append(q(properties.stateDirectory()+"/storage")).append("\n")
                 .append("    create_directory: true\n\n")
-                .append("receivers:\n");
-        if(rows.isEmpty())yaml.append("  otlp/idle:\n    protocols:\n      grpc:\n        endpoint: 127.0.0.1:0\n");
+                .append("receivers:\n")
+                .append("  otlp/app:\n")
+                .append("    protocols:\n")
+                .append("      grpc:\n        endpoint: 127.0.0.1:4317\n")
+                .append("      http:\n        endpoint: 127.0.0.1:4318\n");
         for(LogSourceEntity source:rows)appendReceiver(yaml,source);
 
-        yaml.append("\nprocessors:\n");
+        yaml.append("\nprocessors:\n")
+                .append("  resource/agent_context:\n")
+                .append("    attributes:\n")
+                .append(resource("logatron.project.id",project.getId().toString()))
+                .append(resource("logatron.environment.id",environment.getId().toString()))
+                .append(resource("logatron.server.id",server.getId().toString()))
+                .append(resource("deployment.environment.name",environment.getCode()))
+                .append("  batch/signals:\n    timeout: 1s\n    send_batch_size: 100\n");
         for(LogSourceEntity source:rows){appendTransform(yaml,agent,source);appendBatch(yaml,source);}
 
         yaml.append("\nexporters:\n")
                 .append("  otlp/logatron:\n")
                 .append("    endpoint: ").append(q(agent.getGatewayEndpoint())).append("\n")
                 .append("    tls:\n      insecure: ").append(agent.isGatewayInsecure()).append("\n")
-                .append("    sending_queue:\n      enabled: true\n      queue_size: 10000\n")
-                .append("    retry_on_failure:\n      enabled: true\n      initial_interval: 1s\n      max_interval: 10s\n\n")
-                .append("service:\n  extensions: [file_storage]\n  pipelines:\n");
-        if(rows.isEmpty()){
-            yaml.append("    logs/idle:\n      receivers: [otlp/idle]\n      processors: []\n      exporters: [otlp/logatron]\n");
-        }else{
-            for(LogSourceEntity source:rows){String key=key(source);yaml.append("    logs/").append(key).append(":\n")
-                    .append("      receivers: [filelog/").append(key).append("]\n")
-                    .append("      processors: [transform/").append(key).append(", batch/").append(key).append("]\n")
-                    .append("      exporters: [otlp/logatron]\n");}
-        }
+                .append("    sending_queue:\n      enabled: true\n      storage: file_storage\n      queue_size: 10000\n")
+                .append("    retry_on_failure:\n      enabled: true\n      initial_interval: 1s\n      max_interval: 10s\n      max_elapsed_time: 0s\n\n")
+                .append("service:\n  extensions: [file_storage]\n  pipelines:\n")
+                .append("    traces/app:\n      receivers: [otlp/app]\n      processors: [resource/agent_context, batch/signals]\n      exporters: [otlp/logatron]\n")
+                .append("    metrics/app:\n      receivers: [otlp/app]\n      processors: [resource/agent_context, batch/signals]\n      exporters: [otlp/logatron]\n");
+        for(LogSourceEntity source:rows){String key=key(source);yaml.append("    logs/").append(key).append(":\n")
+                .append("      receivers: [filelog/").append(key).append("]\n")
+                .append("      processors: [transform/").append(key).append(", batch/").append(key).append("]\n")
+                .append("      exporters: [otlp/logatron]\n");}
         String text=yaml.toString();return new CompiledCollectorConfig(text,sha256(text),rows.size());
     }
 
@@ -71,6 +78,9 @@ public class CollectorConfigCompiler {
         String template="{\"schemaVersion\":1,\"eventId\":\"\",\"observedTimestamp\":\"\",\"collector\":{\"collectorId\":\"\",\"sourceOffset\":\"\"},\"resource\":{\"projectId\":\"\",\"environmentId\":\"\",\"serverId\":\"\",\"serviceId\":\"\",\"serviceInstanceId\":\"\"},\"source\":{\"logSourceId\":\"\",\"logFile\":\"\",\"logType\":\"application\",\"parserProfile\":\""+profile+"\"},\"payload\":\"\",\"attributes\":{}}";
         y.append("  transform/").append(key).append(":\n    error_mode: ignore\n    log_statements:\n      - context: log\n        statements:\n")
                 .append(stmt("set(attributes[\"__logatron_payload\"], body)"))
+                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)(authorization\\\\s*[:=]\\\\s*bearer\\\\s+)[^\\\\s,;\\\\\"]+\", \"$1[REDACTED]\")"))
+                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)((?:password|passwd|api[-]?key|access[-]?token|refresh[-]?token|secret)\\\\s*[:=]\\\\s*[\\\\\"]?)[^\\\\s,;&\\\\\"]+\", \"$1[REDACTED]\")"))
+                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)(jdbc:[a-z0-9]+://[^:/@\\\\s]+:)[^@/\\\\s]+(@)\", \"$1[REDACTED]$2\")"))
                 .append(stmt("merge_maps(cache, ParseJSON(\""+escapeOttl(template)+"\"), \"upsert\")"))
                 .append(stmt("set(cache[\"eventId\"], UUID())"))
                 .append(stmt("set(cache[\"observedTimestamp\"], FormatTime(Now(), \"2006-01-02T15:04:05.000-07:00\"))"))
@@ -91,13 +101,13 @@ public class CollectorConfigCompiler {
 
     private void appendBatch(StringBuilder y,LogSourceEntity source){String key=key(source);y.append("  batch/").append(key).append(":\n    timeout: 1s\n    send_batch_size: 10\n");}
     private static String key(LogSourceEntity source){return "source_"+source.getId().toString().replace("-","").substring(0,12).toLowerCase(Locale.ROOT);}
-    private static String multiline(LogSourceEntity source){
-        ParserProfile profile=ParserProfile.fromExternalName(source.getParserProfile());return switch(profile){
-            case JAVA_PIPE_V1 -> "^[^\\s|]+\\s*\\|\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
-            case JAVA_PIPE_LEVEL_FIRST_V1 -> "^\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
-            case PLAINTEXT -> "^\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}";
-            case JSON -> null;
-        };}
+    private static String multiline(LogSourceEntity source){ParserProfile profile=ParserProfile.fromExternalName(source.getParserProfile());return switch(profile){
+        case JAVA_PIPE_V1 -> "^[^\\s|]+\\s*\\|\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
+        case JAVA_PIPE_LEVEL_FIRST_V1 -> "^\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
+        case PLAINTEXT -> "^\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}";
+        case JSON -> null;
+    };}
+    private static String resource(String key,String value){return "      - key: "+key+"\n        value: "+q(value)+"\n        action: upsert\n";}
     private static String stmt(String value){return "          - '"+value.replace("'","''")+"'\n";}
     private static String q(String value){return "'"+(value==null?"":value.replace("'","''"))+"'";}
     private static String escapeOttl(String value){return value.replace("\\","\\\\").replace("\"","\\\"");}
