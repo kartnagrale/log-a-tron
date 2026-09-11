@@ -94,6 +94,7 @@ public class CollectorConfigCompiler {
     private static String multiline(LogSourceEntity source){
         ParserProfile profile=ParserProfile.fromExternalName(source.getParserProfile());return switch(profile){
             case JAVA_PIPE_V1 -> "^[^\\s|]+\\s*\\|\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
+            case JAVA_PIPE_LEVEL_FIRST_V1 -> "^\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
             case PLAINTEXT -> "^\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}";
             case JSON -> null;
         };}
