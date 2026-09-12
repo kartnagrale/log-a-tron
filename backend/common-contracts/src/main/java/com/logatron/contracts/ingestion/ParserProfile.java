@@ -5,7 +5,8 @@ import java.util.Locale;
 public enum ParserProfile {
     JSON,
     PLAINTEXT,
-    JAVA_PIPE_V1;
+    JAVA_PIPE_V1,
+    JAVA_PIPE_LEVEL_FIRST_V1;
 
     public static ParserProfile fromExternalName(String value) {
         if (value == null || value.isBlank()) {
@@ -16,6 +17,7 @@ public enum ParserProfile {
             case "json", "logback-json" -> JSON;
             case "plaintext", "plain-text" -> PLAINTEXT;
             case "java-pipe", "java-pipe-v1" -> JAVA_PIPE_V1;
+            case "java-pipe-level-first", "java-pipe-level-first-v1" -> JAVA_PIPE_LEVEL_FIRST_V1;
             default -> throw new IllegalArgumentException("Unsupported parser profile: " + value);
         };
     }

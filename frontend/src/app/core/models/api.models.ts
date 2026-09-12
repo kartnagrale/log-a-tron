@@ -7,6 +7,9 @@ export interface ServerView {id:string;environmentId:string;hostId:string;hostna
 export interface ServiceView {id:string;projectId:string;serviceKey:string;displayName:string;owner:string;criticality:string;status:string;labels:Record<string,string>}
 export interface ServiceInstanceView {id:string;serviceId:string;serviceName:string;serverId:string;hostname:string;instanceKey:string;version:string;status:string}
 export interface LogSourceView {id:string;serviceInstanceId:string;pathPattern:string;logType:string;parserProfile:string;multilineRule:string;timestampTimezone:string;enabled:boolean;configVersion:number}
+export type CollectorAgentStatus='ONLINE'|'OFFLINE'|'DEGRADED'|'UNKNOWN';
+export interface CollectorAgentView {id:string;serverId:string;agentKey:string;gatewayEndpoint:string;gatewayInsecure:boolean;status:CollectorAgentStatus;lastSeenAt:string|null;collectorVersion:string|null;desiredConfigHash:string;appliedConfigHash:string|null;inSync:boolean;sourceCount:number;lastError:string|null}
+export interface CollectorAgentRegistration {agent:CollectorAgentView;token:string}
 export interface ApiError {timestamp:string;status:number;errorCode:string;message:string;traceId:string;fieldErrors:{field:string;code:string;message:string}[]}
 export interface LogCursor {timestamp:string;eventId:string}
 export interface LogSearchCriteria {projectId?:string|null;environmentId?:string|null;serverId?:string|null;serviceId?:string|null;level?:string|null;from?:string|null;to?:string|null;traceId?:string|null;spanId?:string|null;requestId?:string|null;correlationId?:string|null;transactionId?:string|null;orderToken?:string|null;auctionId?:string|null;exceptionType?:string|null;text?:string|null;pageSize?:number;cursor?:LogCursor|null}

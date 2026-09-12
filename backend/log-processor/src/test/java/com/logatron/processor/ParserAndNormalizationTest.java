@@ -45,6 +45,20 @@ class ParserAndNormalizationTest {
     }
 
     @Test
+    void parsesLevelFirstJavaPipeFormatUsedByUtilityLogs() {
+        String line = "  INFO | brokerpfmuat.neml.xyz-startStop-1 | 11 Sep 2026 08:40:17,929 | DBUtil.java:81 | Current Idle Persistence connections before acquiring 3 | pool=main";
+        var event = new JavaPipeLevelFirstLogParser(new TimestampNormalizer()).parse(
+                TestFixtures.raw(ParserProfile.JAVA_PIPE_LEVEL_FIRST_V1,line), ZoneId.of("Asia/Kolkata"));
+
+        assertThat(event.timestamp()).isEqualTo(Instant.parse("2026-09-11T03:10:17.929Z"));
+        assertThat(event.level()).isEqualTo("INFO");
+        assertThat(event.thread()).isEqualTo("brokerpfmuat.neml.xyz-startStop-1");
+        assertThat(event.logger()).isEqualTo("DBUtil.java:81");
+        assertThat(event.message()).contains("3 | pool=main");
+        assertThat(event.attributes()).containsEntry("parser.profile","JAVA_PIPE_LEVEL_FIRST_V1");
+    }
+
+    @Test
     void parsesJavaPipeMultilineException() {
         String line = "http-nio-8080-exec-1 | ERROR | 09 Sep 2026 18:00:00,000 | ExampleService.java:42:run | Request failed\njava.sql.SQLTimeoutException: timeout\n    at com.example.ExampleService.run(ExampleService.java:42)";
         var event = new JavaPipeLogParser(new TimestampNormalizer()).parse(
@@ -67,6 +81,7 @@ class ParserAndNormalizationTest {
         assertThat(ParserProfile.fromExternalName("logback-json")).isEqualTo(ParserProfile.JSON);
         assertThat(ParserProfile.fromExternalName("plaintext")).isEqualTo(ParserProfile.PLAINTEXT);
         assertThat(ParserProfile.fromExternalName("java-pipe-v1")).isEqualTo(ParserProfile.JAVA_PIPE_V1);
+        assertThat(ParserProfile.fromExternalName("java-pipe-level-first-v1")).isEqualTo(ParserProfile.JAVA_PIPE_LEVEL_FIRST_V1);
         assertThatThrownBy(() -> ParserProfile.fromExternalName("some-project-special-parser"))
                 .isInstanceOf(IllegalArgumentException.class);
     }

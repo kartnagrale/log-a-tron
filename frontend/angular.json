@@ -25,7 +25,9 @@
               "src/styles.css",
               "src/investigation.css",
               "src/role-ux.css",
-              "src/visual-fixes.css"
+              "src/visual-fixes.css",
+              "src/managed-onboarding.css",
+              "src/theme-light.css"
             ]
           },
           "configurations": {

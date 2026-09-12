@@ -50,6 +50,9 @@ springdoc:
 logatron:
   cors:
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:4200}
+  agent:
+    poll-seconds: ${AGENT_POLL_SECONDS:15}
+    state-directory: ${AGENT_STATE_DIRECTORY:/var/lib/logatron-agent}
   log-query:
     clickhouse-url: ${CLICKHOUSE_URL:http://localhost:8123}
     database: ${CLICKHOUSE_DATABASE:logatron}
