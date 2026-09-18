@@ -20,5 +20,5 @@ public class ServiceInstanceEntity extends AuditedEntity {
     public ServiceInstanceEntity(UUID id,ServiceEntity service,ServerEntity server,String instanceKey,String version,Status status){this.id=id;this.service=service;this.server=server;this.instanceKey=instanceKey;this.version=version;this.status=status;}
     public UUID getId(){return id;} public ServiceEntity getService(){return service;} public ServerEntity getServer(){return server;} public String getInstanceKey(){return instanceKey;} public String getVersion(){return version;} public Status getStatus(){return status;} public Instant getFirstSeenAt(){return firstSeenAt;} public Instant getLastSeenAt(){return lastSeenAt;}
     public void update(String version,Status status){this.version=version;this.status=status;}
+    public void stop(){this.status=Status.STOPPED;}
 }
-

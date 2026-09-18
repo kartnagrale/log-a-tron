@@ -8,6 +8,7 @@ import com.logatron.administration.application.AdministrationService;import com.
  @PostMapping("/service-instances") public CreatedResource instance(@AuthenticationPrincipal Jwt jwt,@Valid @RequestBody CreateInstanceRequest body,HttpServletRequest request){return service.createInstance(jwt,body,request);}
  @PostMapping("/log-sources") public CreatedResource source(@AuthenticationPrincipal Jwt jwt,@Valid @RequestBody CreateLogSourceRequest body,HttpServletRequest request){return service.createLogSource(jwt,body,request);}
  @GetMapping("/users") public List<UserView> users(@AuthenticationPrincipal Jwt jwt){return service.users(jwt);}
+ @GetMapping("/companies") public List<CompanyView> companies(@AuthenticationPrincipal Jwt jwt){return service.companies(jwt);}
  @GetMapping("/projects/{projectId}/access") public List<AccessView> access(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID projectId){return service.access(jwt,projectId);}
  @PostMapping("/memberships") public CreatedResource membership(@AuthenticationPrincipal Jwt jwt,@Valid @RequestBody CreateMembershipRequest body,HttpServletRequest request){return service.createMembership(jwt,body,request);}
  @PostMapping("/environment-grants") public CreatedResource grant(@AuthenticationPrincipal Jwt jwt,@Valid @RequestBody CreateGrantRequest body,HttpServletRequest request){return service.createGrant(jwt,body,request);}
@@ -17,6 +18,7 @@ import com.logatron.administration.application.AdministrationService;import com.
  @PutMapping("/services/{id}") public void updateService(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID id,@Valid @RequestBody UpdateServiceRequest body,HttpServletRequest request){service.updateService(jwt,id,body,request);}
  @PutMapping("/service-instances/{id}") public void updateInstance(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID id,@Valid @RequestBody UpdateInstanceRequest body,HttpServletRequest request){service.updateInstance(jwt,id,body,request);}
  @PutMapping("/log-sources/{id}") public void updateLogSource(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID id,@Valid @RequestBody UpdateLogSourceRequest body,HttpServletRequest request){service.updateLogSource(jwt,id,body,request);}
+ @DeleteMapping("/servers/{id}") public void decommissionServer(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID id,HttpServletRequest request){service.decommissionServer(jwt,id,request);}
  @DeleteMapping("/memberships/{id}") public void deleteMembership(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID id,HttpServletRequest request){service.deleteMembership(jwt,id,request);}
  @DeleteMapping("/environment-grants/{id}") public void deleteGrant(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID id,HttpServletRequest request){service.deleteGrant(jwt,id,request);}
 }

@@ -78,8 +78,8 @@ public class CollectorConfigCompiler {
         String template="{\"schemaVersion\":1,\"eventId\":\"\",\"observedTimestamp\":\"\",\"collector\":{\"collectorId\":\"\",\"sourceOffset\":\"\"},\"resource\":{\"projectId\":\"\",\"environmentId\":\"\",\"serverId\":\"\",\"serviceId\":\"\",\"serviceInstanceId\":\"\"},\"source\":{\"logSourceId\":\"\",\"logFile\":\"\",\"logType\":\"application\",\"parserProfile\":\""+profile+"\"},\"payload\":\"\",\"attributes\":{}}";
         y.append("  transform/").append(key).append(":\n    error_mode: ignore\n    log_statements:\n      - context: log\n        statements:\n")
                 .append(stmt("set(attributes[\"__logatron_payload\"], body)"))
-                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)(authorization\\\\s*[:=]\\\\s*bearer\\\\s+)[^\\\\s,;\\\\\"]+\", \"$1[REDACTED]\")"))
-                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)((?:password|passwd|api[-]?key|access[-]?token|refresh[-]?token|secret)\\\\s*[:=]\\\\s*[\\\\\"]?)[^\\\\s,;&\\\\\"]+\", \"$1[REDACTED]\")"))
+                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)(authorization\\\\s*\\\\x22?\\\\s*[:=]\\\\s*\\\\x22?bearer\\\\s+)[^\\\\s,;\\\\x22]+\", \"$1[REDACTED]\")"))
+                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)((?:password|passwd|api[-]?key|access[-]?token|refresh[-]?token|secret)\\\\s*\\\\x22?\\\\s*[:=]\\\\s*\\\\x22?)[^\\\\s,;&\\\\x22]+\", \"$1[REDACTED]\")"))
                 .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)(jdbc:[a-z0-9]+://[^:/@\\\\s]+:)[^@/\\\\s]+(@)\", \"$1[REDACTED]$2\")"))
                 .append(stmt("merge_maps(cache, ParseJSON(\""+escapeOttl(template)+"\"), \"upsert\")"))
                 .append(stmt("set(cache[\"eventId\"], UUID())"))
@@ -101,7 +101,9 @@ public class CollectorConfigCompiler {
 
     private void appendBatch(StringBuilder y,LogSourceEntity source){String key=key(source);y.append("  batch/").append(key).append(":\n    timeout: 1s\n    send_batch_size: 10\n");}
     private static String key(LogSourceEntity source){return "source_"+source.getId().toString().replace("-","").substring(0,12).toLowerCase(Locale.ROOT);}
-    private static String multiline(LogSourceEntity source){ParserProfile profile=ParserProfile.fromExternalName(source.getParserProfile());return switch(profile){
+    private static String multiline(LogSourceEntity source){
+        if(source.getMultilineRule()!=null)return source.getMultilineRule().isBlank()?null:source.getMultilineRule();
+        ParserProfile profile=ParserProfile.fromExternalName(source.getParserProfile());return switch(profile){
         case JAVA_PIPE_V1 -> "^[^\\s|]+\\s*\\|\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
         case JAVA_PIPE_LEVEL_FIRST_V1 -> "^\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
         case PLAINTEXT -> "^\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}";

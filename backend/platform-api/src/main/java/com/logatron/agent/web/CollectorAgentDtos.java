@@ -29,7 +29,9 @@ public final class CollectorAgentDtos {
             CollectorStatus status,
             Instant lastSeenAt,
             String collectorVersion,
+            long desiredConfigVersion,
             String desiredConfigHash,
+            Long appliedConfigVersion,
             String appliedConfigHash,
             boolean inSync,
             int sourceCount,
@@ -38,6 +40,9 @@ public final class CollectorAgentDtos {
     public record AgentHeartbeatRequest(
             @Size(max=80) String collectorVersion,
             @Size(max=64) String appliedConfigHash,
+            @PositiveOrZero Long appliedConfigVersion,
             CollectorStatus status,
             @Size(max=4000) String lastError) {}
+
+    public record ConfigRevisionView(long configVersion,String configHash,int sourceCount,Instant createdAt,boolean applied) {}
 }

@@ -21,7 +21,7 @@ describe('AuthService role transitions',()=>{
  ]){
   it(`clears ${fromRole} state before loading ${toRole}`,async()=>{
    let pending=firstValueFrom(auth.login(fromUser));http.expectOne('/api/v1/dev-auth/token').flush({accessToken:`${fromUser}-token`});http.expectOne('/api/v1/me').flush(identity(fromUser,fromRole));await pending;
-   scope.update({projectId:'p',project:'Demo',environmentId:'e',environment:'DEV',serviceId:'s',service:'Service'});auth.logout();
+   scope.update({projectId:'p',project:'Demo',environmentId:'e',environment:'DEV',serverId:'n',server:'node',serviceId:'s',service:'Service',serviceInstanceId:'i',serviceInstance:'instance',logSourceId:'l',logSource:'/logs/*.log'});auth.logout();
    expect(auth.me()).toBeNull();expect(auth.token()).toBeNull();expect(scope.current().projectId).toBeNull();expect(scope.current().environmentId).toBeNull();expect(scope.current().serviceId).toBeNull();
    pending=firstValueFrom(auth.login(toUser));http.expectOne('/api/v1/dev-auth/token').flush({accessToken:`${toUser}-token`});http.expectOne('/api/v1/me').flush(identity(toUser,toRole));await pending;
    expect(auth.me()?.roles).toEqual([toRole]);expect(auth.token()).toBe(`${toUser}-token`);expect(scope.current().projectId).toBeNull();

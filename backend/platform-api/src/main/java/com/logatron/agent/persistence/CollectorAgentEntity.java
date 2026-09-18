@@ -21,6 +21,7 @@ public class CollectorAgentEntity extends AuditedEntity {
     @Enumerated(EnumType.STRING) @Column(nullable=false,length=30) private CollectorStatus status;
     @Column(name="collector_version",length=80) private String collectorVersion;
     @Column(name="applied_config_hash",length=64) private String appliedConfigHash;
+    @Column(name="applied_config_version") private Long appliedConfigVersion;
     @Column(name="last_seen_at") private Instant lastSeenAt;
     @Column(name="last_error",columnDefinition="text") private String lastError;
 
@@ -39,16 +40,18 @@ public class CollectorAgentEntity extends AuditedEntity {
     public CollectorStatus getStatus(){return status;}
     public String getCollectorVersion(){return collectorVersion;}
     public String getAppliedConfigHash(){return appliedConfigHash;}
+    public Long getAppliedConfigVersion(){return appliedConfigVersion;}
     public Instant getLastSeenAt(){return lastSeenAt;}
     public String getLastError(){return lastError;}
 
     public void rotateToken(String tokenHash){this.tokenHash=tokenHash;}
     public void updateGateway(String endpoint,boolean insecure){this.gatewayEndpoint=endpoint;this.gatewayInsecure=insecure;}
 
-    public void heartbeat(CollectorStatus status,String collectorVersion,String appliedConfigHash,String lastError,Instant now){
+    public void heartbeat(CollectorStatus status,String collectorVersion,String appliedConfigHash,Long appliedConfigVersion,String lastError,Instant now){
         this.status=status==null?CollectorStatus.ONLINE:status;
         this.collectorVersion=trim(collectorVersion,80);
         this.appliedConfigHash=trim(appliedConfigHash,64);
+        this.appliedConfigVersion=appliedConfigVersion;
         this.lastError=lastError==null?null:lastError.substring(0,Math.min(lastError.length(),4000));
         this.lastSeenAt=now;
     }

@@ -47,13 +47,14 @@ public final class CatalogDtos {
     }
 
     public record UpdateLogSourceRequest(
+            @NotBlank @Size(max=1000) String pathPattern,
             @NotBlank @Size(max=60) String logType,
             @NotBlank @Size(max=100) String parserProfile,
             @Size(max=4000) String multilineRule,
             @Size(max=80) String timestampTimezone,
             boolean enabled) {
-        public UpdateLogSourceRequest(String logType,String parserProfile,String multilineRule,boolean enabled) {
-            this(logType,parserProfile,multilineRule,"UTC",enabled);
+        public UpdateLogSourceRequest(String pathPattern,String logType,String parserProfile,String multilineRule,boolean enabled) {
+            this(pathPattern,logType,parserProfile,multilineRule,"UTC",enabled);
         }
     }
 }

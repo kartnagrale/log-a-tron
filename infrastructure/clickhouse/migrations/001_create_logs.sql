@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS logatron.logs_local
  observed_timestamp DateTime64(3, 'UTC') CODEC(Delta, ZSTD),
  ingested_at DateTime64(3, 'UTC') CODEC(Delta, ZSTD),
  company_id UUID, project_id UUID, environment_id UUID,
- server_id Nullable(UUID), service_id UUID, service_instance_id Nullable(UUID),
+ server_id Nullable(UUID), service_id UUID, service_instance_id Nullable(UUID), log_source_id Nullable(UUID),
  company LowCardinality(String), project LowCardinality(String), environment LowCardinality(String),
  server LowCardinality(String), hostname LowCardinality(String), server_ip String,
  service LowCardinality(String), service_instance String, log_file String,

@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -28,4 +29,7 @@ public class CollectorAgentAdminController {
 
     @PutMapping("/collector-agents/{agentId}/gateway")
     public AgentView gateway(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID agentId,@Valid @RequestBody UpdateAgentGatewayRequest body,HttpServletRequest request){return service.updateGateway(jwt,agentId,body,request);}
+
+    @GetMapping("/collector-agents/{agentId}/config-revisions")
+    public List<ConfigRevisionView> revisions(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID agentId){return service.revisions(jwt,agentId);}
 }

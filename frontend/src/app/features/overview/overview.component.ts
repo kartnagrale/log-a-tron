@@ -23,7 +23,7 @@ import { ScopePickerComponent, ScopeSelection } from '../../shared/components/sc
 `})
 export class OverviewComponent {
  private readonly api=inject(LogQueryApiService);private readonly catalog=inject(CatalogApiService);readonly data=signal<Overview|null>(null);readonly loading=signal(true);readonly error=signal('');readonly serviceNames=signal<Record<string,string>>({});
- constructor(){this.load({projectId:null,environmentId:null,serverId:null,serviceId:null});}
+ constructor(){this.load({projectId:null,environmentId:null,serverId:null,serviceId:null,serviceInstanceId:null,logSourceId:null});}
  load(scope:ScopeSelection){if(scope.projectId)this.catalog.services(scope.projectId).subscribe({next:services=>this.serviceNames.set(Object.fromEntries(services.map(service=>[service.id,service.displayName]))),error:()=>this.serviceNames.set({})});else this.serviceNames.set({});const to=new Date(),from=new Date(to.getTime()-30*60_000);this.loading.set(true);this.error.set('');this.api.overview({projectId:scope.projectId,environmentId:scope.environmentId,serviceId:scope.serviceId,from:from.toISOString(),to:to.toISOString()}).subscribe({next:value=>{this.data.set(value);this.loading.set(false);},error:()=>{this.error.set('Overview data is unavailable for the selected authorized scope.');this.loading.set(false);}});}
  serviceName(serviceId:string,fallback:string){return this.serviceNames()[serviceId]??this.serviceNames()[fallback]??fallback;}
  bar(value:number,view:Overview){const max=Math.max(1,...view.trend.map(item=>item.error));return Math.max(4,value/max*100);}

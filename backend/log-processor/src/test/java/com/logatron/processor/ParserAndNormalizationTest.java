@@ -46,13 +46,13 @@ class ParserAndNormalizationTest {
 
     @Test
     void parsesLevelFirstJavaPipeFormatUsedByUtilityLogs() {
-        String line = "  INFO | brokerpfmuat.neml.xyz-startStop-1 | 11 Sep 2026 08:40:17,929 | DBUtil.java:81 | Current Idle Persistence connections before acquiring 3 | pool=main";
+        String line = "  INFO | application-uat-startStop-1 | 11 Sep 2026 08:40:17,929 | DBUtil.java:81 | Current Idle Persistence connections before acquiring 3 | pool=main";
         var event = new JavaPipeLevelFirstLogParser(new TimestampNormalizer()).parse(
                 TestFixtures.raw(ParserProfile.JAVA_PIPE_LEVEL_FIRST_V1,line), ZoneId.of("Asia/Kolkata"));
 
         assertThat(event.timestamp()).isEqualTo(Instant.parse("2026-09-11T03:10:17.929Z"));
         assertThat(event.level()).isEqualTo("INFO");
-        assertThat(event.thread()).isEqualTo("brokerpfmuat.neml.xyz-startStop-1");
+        assertThat(event.thread()).isEqualTo("application-uat-startStop-1");
         assertThat(event.logger()).isEqualTo("DBUtil.java:81");
         assertThat(event.message()).contains("3 | pool=main");
         assertThat(event.attributes()).containsEntry("parser.profile","JAVA_PIPE_LEVEL_FIRST_V1");

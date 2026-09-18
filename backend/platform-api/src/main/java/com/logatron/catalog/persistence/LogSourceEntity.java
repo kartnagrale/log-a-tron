@@ -45,11 +45,12 @@ public class LogSourceEntity extends AuditedEntity {
     public boolean isEnabled(){return enabled;}
     public long getConfigVersion(){return configVersion;}
 
-    public void update(String logType,String parserProfile,String multilineRule,boolean enabled) {
-        update(logType,parserProfile,multilineRule,timestampTimezone,enabled);
+    public void update(String pathPattern,String logType,String parserProfile,String multilineRule,boolean enabled) {
+        update(pathPattern,logType,parserProfile,multilineRule,timestampTimezone,enabled);
     }
 
-    public void update(String logType,String parserProfile,String multilineRule,String timestampTimezone,boolean enabled) {
+    public void update(String pathPattern,String logType,String parserProfile,String multilineRule,String timestampTimezone,boolean enabled) {
+        this.pathPattern=pathPattern;
         this.logType=logType;
         this.parserProfile=parserProfile;
         this.multilineRule=multilineRule;
