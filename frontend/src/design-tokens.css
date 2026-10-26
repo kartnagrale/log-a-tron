@@ -1,0 +1,85 @@
+/* One semantic palette drives native controls, PrimeNG, and every feature. */
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  color-scheme: dark;
+  --bg: #06111f;
+  --bg-deep: #071321;
+  --surface: #0d1e32;
+  --surface-2: #0a1829;
+  --surface-3: #12283f;
+  --panel: #0d1e32;
+  --panel-hover: #132b44;
+  --navbar: #081727;
+  --ink: #f1f5f9;
+  --muted: #a0b3c9;
+  --subtle: #8ca3bc;
+  --line: #25425b;
+  --line-strong: #315574;
+  --blue: #60a5fa;
+  --action: #2563eb;
+  --action-hover: #1d4ed8;
+  --cyan: #38bdf8;
+  --cyan-soft: #0c3048;
+  --selected: #103251;
+  --green: #34d399;
+  --green-soft: #0b302d;
+  --amber: #fbbf24;
+  --amber-soft: #302817;
+  --red: #fb7185;
+  --red-soft: #341c2b;
+  --violet: #c4b5fd;
+  --violet-soft: #292341;
+  --shadow: 0 5px 18px rgb(0 0 0 / 22%);
+  --shadow-raised: 0 16px 48px rgb(0 0 0 / 30%);
+  --surface-highlight: rgb(167 203 239 / 6%);
+  --focus: 0 0 0 3px color-mix(in srgb, var(--cyan) 28%, transparent);
+  --radius: 9px;
+  --radius-sm: 6px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --duration: 160ms;
+  --text-page: clamp(1.75rem, 2.2vw, 2.125rem);
+  --text-section: 1.0625rem;
+  --text-body: .875rem;
+  --text-secondary: .8125rem;
+  --text-meta: .75rem;
+  --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f5f8fc;
+  --bg-deep: #f8fbff;
+  --surface: #ffffff;
+  --surface-2: #f7fafd;
+  --surface-3: #edf4fb;
+  --panel: #ffffff;
+  --panel-hover: #f4f9ff;
+  --navbar: #ffffff;
+  --ink: #0f1e3d;
+  --muted: #536985;
+  --subtle: #637995;
+  --line: #dce7f3;
+  --line-strong: #b8cde4;
+  --blue: #2563eb;
+  --cyan: #007faf;
+  --cyan-soft: #e5f5ff;
+  --selected: #e8f2ff;
+  --green: #047857;
+  --green-soft: #e5f8f0;
+  --amber: #a35b00;
+  --amber-soft: #fff8e7;
+  --red: #cc2447;
+  --red-soft: #fff0f3;
+  --violet: #6d28d9;
+  --violet-soft: #f2edff;
+  --shadow: 0 3px 16px rgb(35 72 120 / 4%);
+  --shadow-raised: 0 16px 48px rgb(35 72 120 / 16%);
+  --surface-highlight: rgb(255 255 255 / 80%);
+}
