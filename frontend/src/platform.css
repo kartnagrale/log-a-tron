@@ -10,7 +10,7 @@
 
 .catalog-toolbar p {
   margin: 0;
-  font-size: .8rem;
+  font-size: var(--text-body);
   color: var(--muted);
 }
 
@@ -57,7 +57,7 @@
 
 .project-card small {
   font-family: var(--mono);
-  font-size: .7rem;
+  font-size: var(--text-meta);
 }
 
 .project-counts {
@@ -71,7 +71,7 @@
 
 .project-counts span {
   color: var(--muted);
-  font-size: .72rem;
+  font-size: var(--text-meta);
 }
 
 .project-counts strong {
@@ -91,7 +91,7 @@
 
 .project-card footer a {
   text-decoration: none;
-  font-size: .8rem;
+  font-size: var(--text-body);
   font-weight: 650;
   display: inline-flex;
   gap: .6rem;
@@ -109,7 +109,7 @@
   background: var(--surface);
   padding: .9rem 1rem;
   margin-bottom: 1rem;
-  font-size: .73rem;
+  font-size: var(--text-meta);
   color: var(--muted);
 }
 
@@ -125,7 +125,7 @@
 }
 
 .topology-path > i {
-  font-size: .65rem;
+  font-size: var(--text-meta);
   color: var(--subtle);
 }
 
@@ -165,7 +165,7 @@
 }
 
 .summary-inline span {
-  font-size: .72rem;
+  font-size: var(--text-meta);
   color: var(--muted);
 }
 
@@ -189,7 +189,7 @@
 .admin-section-nav a {
   color: var(--muted);
   text-decoration: none;
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   padding: .55rem .8rem;
   white-space: nowrap;
   border-radius: 5px;
@@ -238,7 +238,7 @@
 .compact-form label, .stack-form label {
   letter-spacing: 0;
   text-transform: none;
-  font-size: .72rem;
+  font-size: var(--text-meta);
 }
 
 .compact-form label input, .stack-form label input {
@@ -282,11 +282,11 @@
 
 .onboarding-intro strong {
   display: block;
-  font-size: .78rem;
+  font-size: var(--text-secondary);
 }
 
 .onboarding-intro small {
-  font-size: .7rem;
+  font-size: var(--text-meta);
   margin-top: .35rem;
 }
 
@@ -320,7 +320,7 @@
   border: 1px solid var(--line);
   border-radius: 6px;
   text-transform: none;
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   letter-spacing: 0;
 }
 
@@ -345,7 +345,7 @@
 }
 
 .bootstrap-token p {
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   color: var(--muted);
 }
 
@@ -364,7 +364,7 @@
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 1rem;
-  font: .72rem/1.65 var(--mono);
+  font: var(--text-meta)/1.65 var(--mono);
 }
 
 .confirm-dialog {
@@ -382,7 +382,7 @@
 }
 
 .confirm-dialog p {
-  font-size: .85rem;
+  font-size: var(--text-body);
   color: var(--muted);
 }
 
@@ -478,11 +478,11 @@
 }
 
 .identity-option strong {
-  font-size: .8rem;
+  font-size: var(--text-body);
 }
 
 .identity-option small {
-  font-size: .65rem;
+  font-size: var(--text-meta);
 }
 
 .login-signals {
@@ -501,7 +501,7 @@
   border: 1px solid var(--line);
   border-radius: 7px;
   background: var(--surface);
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   color: var(--muted);
 }
 
@@ -532,7 +532,7 @@
 
 .access-denied p:not(.eyebrow) {
   color: var(--muted);
-  font-size: .85rem;
+  font-size: var(--text-body);
   margin-bottom: 1.5rem;
 }
 
@@ -601,10 +601,10 @@
     padding: 1rem;
   }
   .onboarding-intro strong {
-    font-size: .7rem;
+    font-size: var(--text-meta);
   }
   .onboarding-intro small {
-    font-size: .65rem;
+    font-size: var(--text-meta);
   }
   .access-denied {
     padding: 2rem 1rem;
@@ -614,11 +614,11 @@
     flex-wrap: wrap;
   }
   .login-hero > p:last-of-type {
-    font-size: .8rem;
+    font-size: var(--text-body);
   }
   .topology-path {
     gap: .4rem;
-    font-size: .65rem;
+    font-size: var(--text-meta);
   }
 }
 
@@ -627,6 +627,6 @@
   align-items: center;
   gap: .5rem;
   text-decoration: none;
-  font-size: .78rem;
+  font-size: var(--text-secondary);
   margin-bottom: 1rem;
 }

@@ -14,7 +14,7 @@ body {
   min-width: 320px;
   background: var(--bg);
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--text-body);
   line-height: 1.5;
 }
 
@@ -32,21 +32,21 @@ h1, h2, h3, p {
 }
 
 h1 {
-  font-size: clamp(1.6rem, 2.2vw, 2rem);
+  font-size: var(--text-page);
   line-height: 1.2;
   letter-spacing: -.04em;
   margin-bottom: .45rem;
 }
 
 h2 {
-  font-size: 1rem;
+  font-size: var(--text-section);
   line-height: 1.35;
   letter-spacing: -.02em;
   margin-bottom: .9rem;
 }
 
 h3 {
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: .07em;
   color: var(--muted);
@@ -56,7 +56,7 @@ h3 {
 small {
   display: block;
   color: var(--muted);
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -65,7 +65,7 @@ code, pre, .technical {
 }
 
 code {
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   color: var(--cyan);
   overflow-wrap: anywhere;
 }
@@ -81,7 +81,7 @@ button, .button-link, input, select, textarea {
 
 button, .button-link {
   cursor: pointer;
-  font-size: .8rem;
+  font-size: var(--text-body);
   font-weight: 650;
   transition: background var(--duration), border-color var(--duration), box-shadow var(--duration);
 }
@@ -99,7 +99,7 @@ button:disabled {
 input, select, textarea {
   min-width: 0;
   max-width: 100%;
-  font-size: .8125rem;
+  font-size: var(--text-body);
 }
 
 input::placeholder, textarea::placeholder {
@@ -143,7 +143,7 @@ button.primary:hover, .button-link.primary:hover {
 
 label {
   display: block;
-  font-size: .68rem;
+  font-size: var(--text-meta);
   font-weight: 650;
   letter-spacing: .055em;
   text-transform: uppercase;
@@ -154,7 +154,7 @@ label {
 summary {
   cursor: pointer;
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--text-body);
   font-weight: 600;
   padding: .4rem 0;
 }
@@ -218,7 +218,7 @@ summary {
 }
 
 .brand small {
-  font-size: .56rem;
+  font-size: var(--text-meta);
   letter-spacing: .28em;
 }
 
@@ -262,13 +262,13 @@ summary {
 }
 
 .scope-summary small {
-  font-size: .58rem;
+  font-size: var(--text-meta);
   letter-spacing: .09em;
 }
 
 .scope-summary strong {
   display: block;
-  font-size: .73rem;
+  font-size: var(--text-meta);
   font-weight: 600;
   max-width: 180px;
   overflow: hidden;
@@ -277,7 +277,7 @@ summary {
 }
 
 .scope-summary > i {
-  font-size: .7rem;
+  font-size: var(--text-meta);
   color: var(--subtle);
 }
 
@@ -290,7 +290,7 @@ summary {
   border-radius: 6px;
   background: var(--surface-2);
   color: var(--muted);
-  font-size: .7rem;
+  font-size: var(--text-meta);
   white-space: nowrap;
 }
 
@@ -320,12 +320,12 @@ summary {
 }
 
 .profile strong {
-  font-size: .7rem;
+  font-size: var(--text-meta);
   display: block;
 }
 
 .profile small {
-  font-size: .62rem;
+  font-size: var(--text-meta);
 }
 
 .avatar {
@@ -337,12 +337,12 @@ summary {
   background: var(--selected);
   border: 1px solid var(--line);
   color: var(--blue);
-  font-size: .68rem;
+  font-size: var(--text-meta);
   font-weight: 800;
 }
 
 .role-badge {
-  font-size: .55rem;
+  font-size: var(--text-meta);
   font-weight: 750;
   color: var(--blue);
   background: var(--selected);
@@ -374,7 +374,7 @@ summary {
 }
 
 .nav-section {
-  font-size: .65rem;
+  font-size: var(--text-meta);
   letter-spacing: .08em;
   font-weight: 650;
   padding: .8rem .7rem .35rem;
@@ -388,7 +388,7 @@ summary {
   border-radius: 6px;
   border: 1px solid transparent;
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--text-body);
   font-weight: 550;
   text-decoration: none;
   white-space: nowrap;
@@ -427,11 +427,11 @@ summary {
 
 .sidebar-footer strong {
   display: block;
-  font-size: .65rem;
+  font-size: var(--text-meta);
 }
 
 .sidebar-footer small {
-  font-size: .6rem;
+  font-size: var(--text-meta);
 }
 
 .sidebar-collapsed .sidebar a {
@@ -474,7 +474,7 @@ summary {
 }
 
 .page-header p:not(.eyebrow) {
-  font-size: .8125rem;
+  font-size: var(--text-body);
   color: var(--muted);
   margin-bottom: 0;
   max-width: 800px;
@@ -485,7 +485,7 @@ summary {
 }
 
 .eyebrow {
-  font-size: .62rem;
+  font-size: var(--text-meta);
   font-weight: 800;
   letter-spacing: .13em;
   color: var(--cyan);
@@ -498,7 +498,7 @@ summary {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 1px 0 var(--surface-highlight);
   margin-bottom: 1rem;
 }
 
@@ -516,11 +516,11 @@ summary {
 
 .panel-heading > span {
   color: var(--muted);
-  font-size: .73rem;
+  font-size: var(--text-meta);
 }
 
 .panel-heading p:not(.eyebrow) {
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   margin: .25rem 0 0;
   color: var(--muted);
 }
@@ -560,11 +560,11 @@ summary {
 
 .scope-caption strong {
   display: block;
-  font-size: .8rem;
+  font-size: var(--text-body);
 }
 
 .scope-caption small {
-  font-size: .66rem;
+  font-size: var(--text-meta);
   margin-top: .2rem;
 }
 
@@ -586,12 +586,14 @@ summary {
   gap: .35rem;
   padding: .28rem .5rem;
   border-radius: 5px;
-  font-size: .6rem;
+  font-size: var(--text-meta);
   font-weight: 750;
   letter-spacing: .035em;
   color: var(--muted);
   background: var(--surface-3);
   border: 1px solid var(--line);
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .status-chip, .confidence {
@@ -648,7 +650,7 @@ summary {
   display: flex;
   gap: .6rem;
   align-items: center;
-  font-size: .8rem;
+  font-size: var(--text-body);
 }
 
 .empty-state {
@@ -678,7 +680,7 @@ summary {
 }
 
 .empty-state p {
-  font-size: .8rem;
+  font-size: var(--text-body);
   max-width: 460px;
   margin-bottom: 0;
 }
@@ -689,7 +691,7 @@ summary {
 
 .help, .empty {
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--text-body);
   line-height: 1.6;
 }
 
@@ -720,7 +722,7 @@ summary {
 
 .p-component {
   font-family: inherit;
-  font-size: .8125rem;
+  font-size: var(--text-body);
 }
 
 :root .p-select, :root .p-inputtext, :root .p-textarea {
@@ -732,7 +734,7 @@ summary {
 
 :root .p-select-label {
   color: var(--ink);
-  font-size: .8125rem;
+  font-size: var(--text-body);
 }
 
 :root .p-select-label.p-placeholder {
@@ -761,7 +763,7 @@ summary {
 }
 
 :root .p-button {
-  font-size: .8rem;
+  font-size: var(--text-body);
   border-radius: var(--radius-sm);
   min-height: 38px;
 }
@@ -792,7 +794,7 @@ summary {
 
 :root .p-card-subtitle {
   color: var(--muted);
-  font-size: .82rem;
+  font-size: var(--text-body);
 }
 
 :root .p-message {
@@ -814,7 +816,7 @@ summary {
   color: var(--muted);
   border-color: var(--line);
   padding: .8rem;
-  font-size: .65rem;
+  font-size: var(--text-meta);
   text-transform: uppercase;
   letter-spacing: .05em;
 }
@@ -827,7 +829,7 @@ summary {
 :root .p-datatable-tbody > tr > td {
   padding: .85rem .8rem;
   border-color: var(--line);
-  font-size: .78rem;
+  font-size: var(--text-secondary);
 }
 
 :root .p-datatable-tbody > tr:hover {
@@ -907,13 +909,13 @@ summary {
   display: grid;
   grid-template-columns: 115px minmax(0, 1fr);
   gap: .65rem 1rem;
-  font-size: .78rem;
+  font-size: var(--text-secondary);
   margin: 1.25rem 0;
 }
 
 .detail-grid dt, .attributes dt {
   color: var(--muted);
-  font-size: .7rem;
+  font-size: var(--text-meta);
   overflow-wrap: anywhere;
 }
 
@@ -930,7 +932,7 @@ summary {
   color: var(--ink);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font: .75rem/1.75 var(--mono);
+  font: var(--text-secondary)/1.75 var(--mono);
 }
 
 .event-message {
@@ -953,7 +955,7 @@ summary {
   overflow-wrap: anywhere;
   background: var(--cyan-soft);
   color: var(--cyan);
-  font: .7rem var(--mono);
+  font: var(--text-meta) var(--mono);
 }
 
 .drawer-actions {
@@ -1053,7 +1055,7 @@ summary {
     flex-wrap: wrap;
   }
   .page-header p:not(.eyebrow) {
-    font-size: .8rem;
+    font-size: var(--text-body);
   }
 }
 
@@ -1065,10 +1067,10 @@ summary {
     padding: 1rem;
   }
   .brand strong {
-    font-size: .78rem;
+    font-size: var(--text-secondary);
   }
   .brand small {
-    font-size: .48rem;
+    font-size: var(--text-meta);
   }
   .brand-mark {
     width: 32px;
@@ -1079,7 +1081,7 @@ summary {
     padding: .85rem;
   }
   .scope-caption small {
-    font-size: .65rem;
+    font-size: var(--text-meta);
   }
   .detail-drawer {
     padding: 1rem;
@@ -1126,11 +1128,28 @@ body:has(.detail-drawer), body:has(dialog[open]), body:has(.shell.mobile-open) {
   margin-bottom: 1rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  font-size: .8rem;
+  font-size: var(--text-body);
 }
 
 .feedback-banner.success {
   background: var(--green-soft);
   border-color: color-mix(in srgb, var(--green) 30%, var(--line));
   color: var(--green);
+}
+
+/* Keep inference classification visible at the finding and its source. */
+
+.confidence[data-confidence="CONFIRMED_FACT"] {
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.confidence[data-confidence="PROBABLE_INFERENCE"] {
+  color: var(--blue);
+  background: var(--selected);
+}
+
+.confidence[data-confidence="POSSIBLE_HYPOTHESIS"] {
+  color: var(--amber);
+  background: var(--amber-soft);
 }

@@ -15,6 +15,14 @@ Styles load in this order in `frontend/angular.json`:
 
 The four former override sheets (`theme-light.css`, `role-ux.css`, `visual-fixes.css`, and `managed-onboarding.css`) have been consolidated into these owners. Theme-specific colors belong in tokens rather than route selectors. `ObservabilityPreset` sets the PrimeNG blue action palette; native and PrimeNG controls share semantic surfaces and text colors.
 
+### Readability and visual refinement
+
+The shared type scale uses 28–34px page headings, 17px section headings, 14px body/control text, 13px secondary text, and 12px operational metadata. Narrow layouts retain that metadata floor and wrap long identifiers instead of reducing their type size. Evidence cards place the source identifier and confidence badge on separate footer rows, with explicit keyboard-focus treatment.
+
+Dark surfaces separate the application background, sidebar, cards, and hover surfaces with restrained borders, shadows, and a subtle top-edge highlight. Investigation panels use their natural content height; the side panel does not stretch its provider card to fill an unrelated timeline. Timeline timestamps and markers align with event cards, and the bounded scrolling chronology is keyboard-focusable.
+
+The root-cause card repeats the actual assessment confidence and uses candidate/inference wording. Provider confidence is used when its explanation is displayed; otherwise the deterministic classification is used. First-failure flags remain backend-derived and are labeled "First supported failure". Neither chronology nor presentation upgrades a probable inference to a confirmed causal finding.
+
 ## Route and interaction coverage
 
 | Route | Page-specific design |

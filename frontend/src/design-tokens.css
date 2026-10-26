@@ -5,24 +5,24 @@
   font-synthesis: none;
   color-scheme: dark;
   --bg: #06111f;
-  --bg-deep: #071525;
-  --surface: #0c1b2e;
+  --bg-deep: #071321;
+  --surface: #0d1e32;
   --surface-2: #0a1829;
-  --surface-3: #10243a;
-  --panel: #0c1b2e;
-  --panel-hover: #10243a;
+  --surface-3: #12283f;
+  --panel: #0d1e32;
+  --panel-hover: #132b44;
   --navbar: #081727;
   --ink: #f1f5f9;
   --muted: #a0b3c9;
   --subtle: #8ca3bc;
-  --line: #1e3a52;
+  --line: #25425b;
   --line-strong: #315574;
   --blue: #60a5fa;
   --action: #2563eb;
   --action-hover: #1d4ed8;
   --cyan: #38bdf8;
   --cyan-soft: #0c3048;
-  --selected: #102d4b;
+  --selected: #103251;
   --green: #34d399;
   --green-soft: #0b302d;
   --amber: #fbbf24;
@@ -31,8 +31,9 @@
   --red-soft: #341c2b;
   --violet: #c4b5fd;
   --violet-soft: #292341;
-  --shadow: 0 4px 20px rgb(0 0 0 / 12%);
+  --shadow: 0 5px 18px rgb(0 0 0 / 22%);
   --shadow-raised: 0 16px 48px rgb(0 0 0 / 30%);
+  --surface-highlight: rgb(167 203 239 / 6%);
   --focus: 0 0 0 3px color-mix(in srgb, var(--cyan) 28%, transparent);
   --radius: 9px;
   --radius-sm: 6px;
@@ -43,6 +44,11 @@
   --space-6: 24px;
   --space-8: 32px;
   --duration: 160ms;
+  --text-page: clamp(1.75rem, 2.2vw, 2.125rem);
+  --text-section: 1.0625rem;
+  --text-body: .875rem;
+  --text-secondary: .8125rem;
+  --text-meta: .75rem;
   --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }
 
@@ -75,4 +81,5 @@
   --violet-soft: #f2edff;
   --shadow: 0 3px 16px rgb(35 72 120 / 4%);
   --shadow-raised: 0 16px 48px rgb(35 72 120 / 16%);
+  --surface-highlight: rgb(255 255 255 / 80%);
 }

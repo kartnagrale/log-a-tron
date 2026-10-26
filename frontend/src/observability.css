@@ -32,7 +32,7 @@
   min-height: 34px;
   padding-left: 44px;
   color: var(--muted);
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   font-weight: 650;
 }
 
@@ -65,7 +65,7 @@
 }
 
 .metric-card small {
-  font-size: .72rem;
+  font-size: var(--text-meta);
 }
 
 .dashboard-grid {
@@ -119,17 +119,17 @@
 
 .rank {
   color: var(--subtle);
-  font: .7rem var(--mono);
+  font: var(--text-meta) var(--mono);
 }
 
 .ranking-row strong {
   display: block;
-  font-size: .8rem;
+  font-size: var(--text-body);
   overflow-wrap: anywhere;
 }
 
 .ranking-row b {
-  font-size: .85rem;
+  font-size: var(--text-body);
   font-variant-numeric: tabular-nums;
 }
 
@@ -160,7 +160,7 @@
 
 .capability-strip > div p:not(.eyebrow) {
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--text-body);
   margin: 0;
 }
 
@@ -178,11 +178,11 @@
 
 .capability-strip strong {
   display: block;
-  font-size: .8rem;
+  font-size: var(--text-body);
 }
 
 .capability-strip small {
-  font-size: .72rem;
+  font-size: var(--text-meta);
 }
 
 .filters {
@@ -260,7 +260,7 @@
 }
 
 .result-heading small {
-  font-size: .72rem;
+  font-size: var(--text-meta);
 }
 
 .log-table-wrap {
@@ -273,7 +273,7 @@
   min-width: 900px;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: .78rem;
+  font-size: var(--text-secondary);
 }
 
 .log-table th {
@@ -283,7 +283,7 @@
   color: var(--muted);
   z-index: 1;
   text-align: left;
-  font-size: .62rem;
+  font-size: var(--text-meta);
   text-transform: uppercase;
   letter-spacing: .05em;
 }
@@ -336,7 +336,7 @@
 }
 
 .log-table small {
-  font-size: .68rem;
+  font-size: var(--text-meta);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -344,7 +344,7 @@
 
 .log-table .timestamp {
   color: var(--muted);
-  font: .68rem/1.7 var(--mono);
+  font: var(--text-meta)/1.7 var(--mono);
 }
 
 .log-table .message {
@@ -352,7 +352,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: var(--mono);
-  font-size: .72rem;
+  font-size: var(--text-meta);
 }
 
 .log-table td:last-child > span {
@@ -364,12 +364,12 @@
   background: var(--cyan-soft);
   border-radius: 4px;
   margin-right: .2rem;
-  font: .65rem var(--mono);
+  font: var(--text-meta) var(--mono);
 }
 
 .context-marker {
   color: var(--blue);
-  font-size: .62rem;
+  font-size: var(--text-meta);
   font-weight: 750;
 }
 
@@ -377,7 +377,7 @@
   background: var(--cyan-soft);
   padding: .65rem .8rem;
   color: var(--cyan);
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   margin: 1rem 0;
   border-radius: 6px;
 }
@@ -437,19 +437,19 @@
 }
 
 .trace-help-grid strong {
-  font-size: .85rem;
+  font-size: var(--text-body);
 }
 
 .trace-help-grid p {
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--text-body);
   margin: .5rem 0 0;
   line-height: 1.7;
 }
 
 .validation-message {
   color: var(--red);
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   margin-top: .5rem;
 }
 
@@ -466,7 +466,7 @@
   background: var(--surface-2);
   padding: 1rem;
   color: var(--muted);
-  font-size: .75rem;
+  font-size: var(--text-secondary);
   border-right: 1px solid var(--line);
 }
 
@@ -497,7 +497,7 @@
 
 .waterfall-head {
   padding: .8rem .6rem;
-  font-size: .65rem;
+  font-size: var(--text-meta);
   text-transform: uppercase;
   color: var(--muted);
   background: var(--surface-2);
@@ -538,7 +538,7 @@
 }
 
 .span-name strong {
-  font-size: .78rem;
+  font-size: var(--text-secondary);
 }
 
 .span-name strong, .span-name small {
@@ -548,7 +548,7 @@
 }
 
 .span-name small {
-  font-size: .7rem;
+  font-size: var(--text-meta);
 }
 
 .timeline {
@@ -575,14 +575,14 @@
 }
 
 .span-duration {
-  font: .72rem var(--mono);
+  font: var(--text-meta) var(--mono);
   text-align: right;
 }
 
 .span-duration em {
   display: block;
   font-family: inherit;
-  font-size: .6rem;
+  font-size: var(--text-meta);
   line-height: 1.7;
   font-style: normal;
   color: var(--muted);
@@ -636,11 +636,11 @@
     height: 28px;
   }
   .metric-label {
-    font-size: .65rem;
+    font-size: var(--text-meta);
     padding-left: 35px;
   }
   .metric-card small {
-    font-size: .67rem;
+    font-size: var(--text-meta);
   }
   .filter-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -678,7 +678,7 @@
 }
 
 .chart-y-axis small {
-  font: .65rem var(--mono);
+  font: var(--text-meta) var(--mono);
 }
 
 .premium-trend {
@@ -696,7 +696,7 @@
 }
 
 .waterfall-axis small {
-  font: .65rem var(--mono);
+  font: var(--text-meta) var(--mono);
   text-transform: none;
   letter-spacing: 0;
 }
