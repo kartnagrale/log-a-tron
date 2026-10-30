@@ -43,6 +43,8 @@ Mount this file read-only into the platform-api container using a deployment-spe
 8. Click **Validate configuration**. `VALID` means the exact contrib binary accepted the immutable YAML. Target validation is still required. `UNKNOWN`, `INVALID` and `UNAVAILABLE` are distinct states.
 9. Click **Download YAML** for manual installation, or follow the optional agent rollout below. A download is a snapshot, not a remote deployment. Check its validation status and validate on the target before using it.
 
+Receiver max_log_size does not increase the processor MAX_EVENT_BYTES or MAX_STACK_TRACE_BYTES limits. Keep those limits compatible before enabling larger records.
+
 The main pattern plus additional includes form one receiver with one resource identity. Each source has a collision-free full-UUID receiver/transform/pipeline name and independent metadata. Supported globs are absolute Linux paths using `*`, `**` and `?`; relative paths, traversal, interpolation, control characters and bracket globs are rejected. Date-wise directories such as `/logs/app/*/*.log` work directly.
 
 When enabled sources overlap, lower source UUID wins deterministically. The generator warns and excludes the winning source's include patterns from later receivers. This prevents duplicate collection even across instances. This is conservative: files excluded by the winning source also remain reserved by that source. Prefer disjoint patterns and review the warnings; do not rely on broad overlapping sources to fill exclusion gaps.

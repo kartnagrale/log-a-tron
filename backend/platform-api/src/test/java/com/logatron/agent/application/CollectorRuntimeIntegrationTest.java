@@ -56,7 +56,15 @@ public class CollectorRuntimeIntegrationTest {
    }finally{agent.close();}
   }
  }
- private GenericContainer<?> collector(String image,Path config){return new GenericContainer<>(image).withCreateContainerCmdModifier(c->c.withUser("0")).withCopyFileToContainer(MountableFile.forHostPath(config),"/etc/config.yml").withCommand("--config=/etc/config.yml").waitingFor(Wait.forLogMessage(".*Everything is ready.*",1)).withStartupTimeout(Duration.ofSeconds(45));}
+ private GenericContainer<?> collector(String image,Path config){
+  // Match bind-mount ownership on Unix so state/queue files remain readable and
+  // removable by JUnit. Docker Desktop's Windows mounts use the root fallback.
+  String owner="0";
+  try{owner=Files.getAttribute(config,"unix:uid")+":"+Files.getAttribute(config,"unix:gid");}
+  catch(UnsupportedOperationException|java.io.IOException ignored){}
+  final String user=owner;
+  return new GenericContainer<>(image).withCreateContainerCmdModifier(c->c.withUser(user)).withCopyFileToContainer(MountableFile.forHostPath(config),"/etc/config.yml").withCommand("--config=/etc/config.yml").waitingFor(Wait.forLogMessage(".*Everything is ready.*",1)).withStartupTimeout(Duration.ofSeconds(45));
+ }
  private List<RawLogEnvelope> awaitEnvelopes(Path file,int count)throws Exception{long until=System.nanoTime()+Duration.ofSeconds(30).toNanos();List<RawLogEnvelope> events=List.of();while(System.nanoTime()<until){events=readEnvelopes(file);if(events.size()>=count)return events;Thread.sleep(200);}throw new AssertionError("Expected "+count+" envelopes, got "+events.size());}
  private List<RawLogEnvelope> readEnvelopes(Path file)throws Exception{var result=new ArrayList<RawLogEnvelope>();if(!Files.exists(file))return result;for(String line:Files.readAllLines(file)){if(line.isBlank())continue;JsonNode doc;try{doc=json.readTree(line);}catch(Exception incomplete){continue;}for(var resource:doc.path("resourceLogs"))for(var scope:resource.path("scopeLogs"))for(var record:scope.path("logRecords"))result.add(json.convertValue(decode(record.path("body")),RawLogEnvelope.class));}return result;}
  private Object decode(JsonNode value){if(value.has("stringValue"))return value.get("stringValue").asText();if(value.has("intValue"))return value.get("intValue").asInt();if(value.has("kvlistValue")){var map=new LinkedHashMap<String,Object>();for(var item:value.path("kvlistValue").path("values"))map.put(item.path("key").asText(),decode(item.path("value")));return map;}return null;}

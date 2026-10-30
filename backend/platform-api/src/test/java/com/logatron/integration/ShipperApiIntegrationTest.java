@@ -40,7 +40,9 @@ class ShipperApiIntegrationTest {
   server=id("servers",Map.of("environmentId",env,"hostId","test-01","hostname","test.internal"));
   service=id("services",Map.of("projectId",project,"serviceKey","test-service","displayName","Test Service","criticality","MEDIUM"));
   instance=id("service-instances",Map.of("serviceId",service,"serverId",server,"instanceKey","test-1"));
-  source=id("log-sources",Map.of("serviceInstanceId",instance,"pathPattern","/logs/*/*.log","logType","application","parserProfile","JAVA_PIPE_V1","enabled",true));
+  // The first file scan may happen after the sample append on a fast runner.
+  // Beginning is intentional for this disposable replay fixture; production defaults stay end.
+  source=id("log-sources",Map.of("serviceInstanceId",instance,"pathPattern","/logs/*/*.log","logType","application","parserProfile","JAVA_PIPE_V1","enabled",true,"shipperOptions",Map.of("startAt","beginning")));
   JsonNode registration=postJson(base+"/collector-agents",Map.of("serverId",server,"agentKey","test-"+UUID.randomUUID(),"gatewayEndpoint","gateway.test:4317","gatewayInsecure",true));agent=registration.path("agent").path("id").asText();token=registration.path("token").asText();
  }
  @org.junit.jupiter.api.io.TempDir java.nio.file.Path runtimeDirectory;
