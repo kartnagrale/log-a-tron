@@ -1,3 +1,7 @@
+# Managed shipper installation
+
+> This script now implements managed-v2 with explicit reviewed releases. Read [Shipper management](../../docs/SHIPPER-MANAGEMENT.md) for backend destination policy, validation, deployment authorization, state-directory alignment and legacy cutover before using the installation examples below. New source edits no longer deploy automatically. Requires otelcol-contrib 0.135.0, HTTPS (or explicitly authorized development HTTP), flock and timeout.
+
 # LOG-A-TRON Managed Shipper
 
 The managed shipper is installed once on each application server. After installation, project/service/log-source onboarding is driven from the LOG-A-TRON Administration UI rather than by hand-editing collector YAML on the server.
@@ -9,23 +13,23 @@ The managed shipper is installed once on each application server. After installa
 - `curl` and `python3`
 - the one-time agent registration values shown by Administration
 
-The shipper periodically downloads the server's desired collector configuration, validates it using `otelcol-contrib validate`, applies it atomically, runs the Collector, and reports the applied config hash and health back to the control plane.
+The shipper polls only explicitly released immutable versions, validates with the target binary, applies atomically, checks process and health endpoint, and reports the matching rollout identity. A failed startup restores the previous configuration and acknowledged version.
 
 ## Registration workflow
 
 1. In LOG-A-TRON Administration create/select the Project, Environment, Server, Service, and Service Instance.
 2. Register a managed shipper for the selected server.
-3. Enter the OTLP Gateway endpoint reachable **from that server** (for example `172.22.22.51:4317` in a local UAT test, or an internal DNS name in a real deployment).
+3. Select a backend-approved OTLP gateway destination reachable from that server.
 4. Copy the returned Agent ID and one-time token. The platform stores only a SHA-256 token hash.
 5. Install/start the shipper using the values below.
-6. From then on create/update Log Sources in the UI. The desired config hash changes automatically and the shipper applies the new configuration on its next poll.
+6. Create/update Log Sources, then open Shippers to generate, validate and review a snapshot. Explicitly authorize and confirm each deployment; source edits never release automatically.
 
 ## Interactive start
 
 ```bash
 chmod +x ./logatron-managed-shipper.sh ./otelcol-contrib
 
-export LOGATRON_PLATFORM_URL='http://CONTROL-PLANE:8080'
+export LOGATRON_PLATFORM_URL='https://CONTROL-PLANE'
 export LOGATRON_AGENT_ID='00000000-0000-0000-0000-000000000000'
 export LOGATRON_AGENT_TOKEN='ONE_TIME_TOKEN_FROM_UI'
 export OTELCOL_BIN='/opt/logatron/otelcol-contrib'
@@ -42,7 +46,7 @@ The control-plane URL and gateway endpoint are intentionally separate. The shipp
 Create `/etc/logatron-agent.env` readable only by root:
 
 ```text
-LOGATRON_PLATFORM_URL=http://CONTROL-PLANE:8080
+LOGATRON_PLATFORM_URL=https://CONTROL-PLANE
 LOGATRON_AGENT_ID=00000000-0000-0000-0000-000000000000
 LOGATRON_AGENT_TOKEN=ONE_TIME_TOKEN_FROM_UI
 OTELCOL_BIN=/opt/logatron/otelcol-contrib
@@ -90,7 +94,7 @@ The Administration UI can display:
 - **In sync**: hashes match
 - **Last seen / collector version / last error**
 
-Changing a log source does not require SSH. The new desired config is compiled automatically and picked up by the shipper.
+Changing a source does not require SSH. Generate and validate the next snapshot in Shippers, review its diff and explicitly confirm a deployment. Only that released version is picked up by the agent.
 
 ## Security notes
 

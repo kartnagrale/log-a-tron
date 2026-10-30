@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:${SHIPPER_SETTINGS_FILE:/etc/logatron/shipper.yml}
   application:
     name: log-a-tron-platform-api
   datasource:
@@ -50,6 +52,8 @@ springdoc:
 logatron:
   cors:
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:4200}
+  shipper:
+    validator-binary: ${SHIPPER_VALIDATOR_BINARY:}
   agent:
     poll-seconds: ${AGENT_POLL_SECONDS:15}
     state-directory: ${AGENT_STATE_DIRECTORY:/var/lib/logatron-agent}

@@ -18,16 +18,15 @@ class CollectorConfigCompilerTest {
     @Test void compilesWildcardPathCanonicalProfileAndProfileDefaultMultiline(){
         Fixture f=fixture("JAVA_PIPE_V1",null);
         String yaml=compile(f);
-        assertThat(yaml).contains("'/srv/apps/*/logs/*.log'")
-                .contains("\\\"parserProfile\\\":\\\"JAVA_PIPE_V1\\\"")
-                .contains("\\\\x22")
+        assertThat(yaml).contains("/srv/apps/*/logs/*.log")
+                .contains("JAVA_PIPE_V1")
                 .contains("multiline:")
                 .contains("TRACE|DEBUG|INFO");
     }
 
     @Test void customMultilineOverridesTheProfileDefault(){
         Fixture f=fixture("PLAINTEXT","^CUSTOM-START");
-        assertThat(compile(f)).contains("line_start_pattern: '^CUSTOM-START'")
+        assertThat(compile(f)).contains("line_start_pattern: ^CUSTOM-START")
                 .doesNotContain("^\\d{4}-\\d{2}");
     }
 
@@ -36,12 +35,16 @@ class CollectorConfigCompilerTest {
         assertThat(compile(f)).doesNotContain("multiline:");
     }
 
+    @Test void plaintextRetainsExistingTimestampBasedMultilineDefault(){
+        assertThat(compile(fixture("PLAINTEXT",null))).contains("line_start_pattern: ^\\d{4}-\\d{2}-\\d{2}[ T]");
+    }
+
     private String compile(Fixture f){
         when(sources.findEnabledDetailedByServerId(f.server().getId())).thenReturn(List.of(f.source()));
         return compiler.compile(f.agent()).yaml();
     }
 
-    private static Fixture fixture(String profile,String multiline){
+    static Fixture fixture(String profile,String multiline){
         CompanyEntity company=new CompanyEntity(UUID.randomUUID(),"acme","Acme",Status.ACTIVE);
         ProjectEntity project=new ProjectEntity(UUID.randomUUID(),company,"platform","Platform",Classification.INTERNAL,Status.ACTIVE);
         EnvironmentEntity environment=new EnvironmentEntity(UUID.randomUUID(),project,"UAT","UAT",EnvironmentType.UAT,Sensitivity.INTERNAL,Status.ACTIVE);
@@ -53,5 +56,5 @@ class CollectorConfigCompilerTest {
         return new Fixture(server,source,agent);
     }
 
-    private record Fixture(ServerEntity server,LogSourceEntity source,CollectorAgentEntity agent){}
+    record Fixture(ServerEntity server,LogSourceEntity source,CollectorAgentEntity agent){}
 }

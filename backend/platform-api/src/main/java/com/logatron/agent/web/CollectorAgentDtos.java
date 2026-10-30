@@ -42,7 +42,10 @@ public final class CollectorAgentDtos {
             @Size(max=64) String appliedConfigHash,
             @PositiveOrZero Long appliedConfigVersion,
             CollectorStatus status,
-            @Size(max=4000) String lastError) {}
+            @Size(max=4000) String lastError,
+            @Pattern(regexp="managed-v2") String protocol, UUID deploymentId, boolean healthVerified) {
+        public AgentHeartbeatRequest(String collectorVersion,String appliedConfigHash,Long appliedConfigVersion,CollectorStatus status,String lastError){this(collectorVersion,appliedConfigHash,appliedConfigVersion,status,lastError,null,null,false);}
+    }
 
     public record ConfigRevisionView(long configVersion,String configHash,int sourceCount,Instant createdAt,boolean applied) {}
 }

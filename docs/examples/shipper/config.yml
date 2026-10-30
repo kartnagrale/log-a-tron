@@ -1,0 +1,104 @@
+extensions:
+  health_check:
+    endpoint: 127.0.0.1:13133
+  file_storage:
+    directory: /var/lib/logatron-agent/storage
+    create_directory: true
+receivers:
+  otlp/app:
+    protocols:
+      grpc:
+        endpoint: 127.0.0.1:4317
+      http:
+        endpoint: 127.0.0.1:4318
+  filelog/source_7c2326549e4944f7b4db0777368e3840:
+    include:
+    - /logs/*/*.log
+    exclude: []
+    start_at: end
+    include_file_path: true
+    include_file_record_offset: true
+    preserve_leading_whitespaces: true
+    preserve_trailing_whitespaces: true
+    max_log_size: 200KiB
+    storage: file_storage
+    retry_on_failure:
+      enabled: true
+    multiline:
+      line_start_pattern: ^[^\s|]+\s*\|\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\s*\|
+processors:
+  resource/agent_context:
+    attributes:
+    - key: logatron.project.id
+      value: 14db3105-c169-4115-94f2-47b79f91dd58
+      action: upsert
+    - key: logatron.environment.id
+      value: 4738f92c-af9b-46c7-bd87-f09772956791
+      action: upsert
+    - key: logatron.server.id
+      value: 791b53ce-f863-4bc5-acb1-d99617ff2118
+      action: upsert
+    - key: deployment.environment.name
+      value: UAT
+      action: upsert
+  batch/signals:
+    timeout: 1s
+    send_batch_size: 100
+  transform/source_7c2326549e4944f7b4db0777368e3840:
+    error_mode: propagate
+    log_statements:
+    - context: log
+      statements:
+      - merge_maps(cache, ParseJSON("{\"schemaVersion\":1,\"eventId\":\"\",\"observedTimestamp\":\"\",\"collector\":{\"collectorId\":\"test-9fda5f36-6d06-41ac-bd77-ec4959c96b9e\",\"sourceOffset\":\"\"},\"resource\":{\"projectId\":\"14db3105-c169-4115-94f2-47b79f91dd58\",\"environmentId\":\"4738f92c-af9b-46c7-bd87-f09772956791\",\"serverId\":\"791b53ce-f863-4bc5-acb1-d99617ff2118\",\"serviceId\":\"3ff253d0-2741-410e-a60c-844bf6824ffb\",\"serviceInstanceId\":\"d68e9c57-9048-43e1-bb7a-409b0f8dbac3\"},\"source\":{\"logSourceId\":\"7c232654-9e49-44f7-b4db-0777368e3840\",\"logFile\":\"\",\"logType\":\"application\",\"parserProfile\":\"JAVA_PIPE_V1\"},\"payload\":\"\",\"attributes\":{}}"), "upsert")
+      - set(cache["eventId"], UUID())
+      - set(cache["observedTimestamp"], FormatTime(Now(), "2006-01-02T15:04:05.000000000Z07:00"))
+      - set(cache["collector"]["sourceOffset"], Concat(["7c232654-9e49-44f7-b4db-0777368e3840", attributes["log.file.path"], String(attributes["log.file.record_offset"]), SHA256(body)], "|"))
+      - set(cache["source"]["logFile"], attributes["log.file.path"])
+      - set(cache["payload"], body)
+      - set(body, cache)
+  batch/source_7c2326549e4944f7b4db0777368e3840:
+    timeout: 1s
+    send_batch_size: 10
+exporters:
+  otlp/logatron:
+    endpoint: gateway.test:4317
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      storage: file_storage
+      queue_size: 10000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 10s
+      max_elapsed_time: 0s
+service:
+  extensions:
+  - health_check
+  - file_storage
+  pipelines:
+    traces/app:
+      receivers:
+      - otlp/app
+      processors:
+      - resource/agent_context
+      - batch/signals
+      exporters:
+      - otlp/logatron
+    metrics/app:
+      receivers:
+      - otlp/app
+      processors:
+      - resource/agent_context
+      - batch/signals
+      exporters:
+      - otlp/logatron
+    logs/source_7c2326549e4944f7b4db0777368e3840:
+      receivers:
+      - filelog/source_7c2326549e4944f7b4db0777368e3840
+      processors:
+      - transform/source_7c2326549e4944f7b4db0777368e3840
+      - batch/source_7c2326549e4944f7b4db0777368e3840
+      exporters:
+      - otlp/logatron

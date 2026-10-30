@@ -3,6 +3,9 @@ package com.logatron.catalog.persistence;
 import com.logatron.common.persistence.AuditedEntity;
 import jakarta.persistence.*;
 import java.util.UUID;
+import com.logatron.catalog.domain.LogSourceOptions;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name="log_source",uniqueConstraints=@UniqueConstraint(name="uq_log_source_instance_path",columnNames={"service_instance_id","path_pattern"}))
@@ -16,6 +19,8 @@ public class LogSourceEntity extends AuditedEntity {
     @Column(name="timestamp_timezone",nullable=false,length=80) private String timestampTimezone;
     @Column(nullable=false) private boolean enabled;
     @Column(name="config_version",nullable=false) private long configVersion;
+    @JdbcTypeCode(SqlTypes.JSON) @Column(name="shipper_options",nullable=false,columnDefinition="jsonb") private LogSourceOptions shipperOptions=LogSourceOptions.defaults();
+    @Version @Column(name="row_version") private long rowVersion;
 
     protected LogSourceEntity() {}
 
@@ -44,6 +49,8 @@ public class LogSourceEntity extends AuditedEntity {
     public String getTimestampTimezone(){return timestampTimezone;}
     public boolean isEnabled(){return enabled;}
     public long getConfigVersion(){return configVersion;}
+    public LogSourceOptions getShipperOptions(){return shipperOptions==null?LogSourceOptions.defaults():shipperOptions;}
+    public void configureShipper(LogSourceOptions options){this.shipperOptions=options==null?LogSourceOptions.defaults():options;}
 
     public void update(String pathPattern,String logType,String parserProfile,String multilineRule,boolean enabled) {
         update(pathPattern,logType,parserProfile,multilineRule,timestampTimezone,enabled);

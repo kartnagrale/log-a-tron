@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { AdministrationComponent } from './administration.component';
@@ -8,7 +9,7 @@ describe('Administration decommission safeguards', () => {
   const server = { id: 'review-server', hostname: 'review.internal' } as ServerView;
   function setup() {
     const api = { decommissionServer: vi.fn(() => of(undefined)) };
-    TestBed.configureTestingModule({ providers: [{ provide: CatalogApiService, useValue: api }] });
+    TestBed.configureTestingModule({ providers: [provideRouter([]), { provide: CatalogApiService, useValue: api }] });
     const component = TestBed.runInInjectionContext(() => new AdministrationComponent());
     return { component, api };
   }
@@ -27,7 +28,7 @@ describe('Administration decommission safeguards', () => {
   });
   it('renders and opens the native confirmation dialog before taking action', async () => {
     const api = { projects: () => of([]), companies: () => of([]), adminUsers: () => of([]) };
-    await TestBed.configureTestingModule({ imports: [AdministrationComponent], providers: [{ provide: CatalogApiService, useValue: api }] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [AdministrationComponent], providers: [provideRouter([]), { provide: CatalogApiService, useValue: api }] }).compileComponents();
     const fixture = TestBed.createComponent(AdministrationComponent);
     fixture.detectChanges();
     const dialog = fixture.nativeElement.querySelector('dialog') as HTMLDialogElement;

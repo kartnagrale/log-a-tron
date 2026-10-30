@@ -1,0 +1,10 @@
+# Copy to secrets/shipper.yml; edit only in the deployment environment.
+logatron:
+  shipper:
+    destinations:
+      - id: primary-tls
+        name: Primary telemetry gateway (TLS)
+        endpoint: telemetry.example.invalid:4317
+        insecure: false
+        project-ids: []
+        environment-ids: []

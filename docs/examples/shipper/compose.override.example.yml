@@ -1,0 +1,5 @@
+# Copy to secrets/compose.shipper.yml. Paths resolve from the base Compose file.
+services:
+  platform-api:
+    volumes:
+      - ./secrets/shipper.yml:/etc/logatron/shipper.yml:ro

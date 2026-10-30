@@ -1,3 +1,4 @@
+FROM otel/opentelemetry-collector-contrib:0.135.0 AS collector
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /workspace
 COPY mvnw mvnw.cmd pom.xml ./
@@ -15,6 +16,8 @@ FROM eclipse-temurin:21-jre-alpine
 RUN addgroup -S logatron && adduser -S logatron -G logatron
 WORKDIR /app
 COPY --from=build /workspace/platform-api/target/platform-api-0.1.0-SNAPSHOT.jar app.jar
+COPY --from=collector /otelcol-contrib /usr/local/bin/otelcol-contrib
+ENV SHIPPER_VALIDATOR_BINARY=/usr/local/bin/otelcol-contrib
 USER logatron
 EXPOSE 8080
 ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","/app/app.jar"]

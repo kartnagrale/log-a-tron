@@ -137,6 +137,9 @@ services:
       OIDC_ISSUER_URI: ${OIDC_ISSUER_URI:-https://identity.invalid/real-issuer-required}
       OIDC_AUDIENCE: ${OIDC_AUDIENCE:-log-a-tron-api}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:4200}
+      AGENT_POLL_SECONDS: ${AGENT_POLL_SECONDS:-15}
+      AGENT_STATE_DIRECTORY: ${AGENT_STATE_DIRECTORY:-/var/lib/logatron-agent}
+      SHIPPER_SETTINGS_FILE: ${SHIPPER_SETTINGS_FILE:-/etc/logatron/shipper.yml}
       CLICKHOUSE_URL: http://clickhouse:8123
       CLICKHOUSE_DATABASE: ${CLICKHOUSE_DATABASE:-logatron}
       CLICKHOUSE_QUERY_USER: ${CLICKHOUSE_USER:-logatron_ingest}

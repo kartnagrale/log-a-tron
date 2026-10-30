@@ -140,6 +140,10 @@ The stub:
 
 A real external LLM provider and RAG/knowledge provider are **not included in v0.7.0**. Adding credentials alone does not enable an external model.
 
+## Shipper onboarding
+
+Administration registers or adopts existing catalog resources; **Shippers** previews, validates and downloads immutable Collector configurations and explicitly releases versions to the optional authenticated pull agent. See [the onboarding, API, deployment, rollback and legacy migration guide](docs/SHIPPER-MANAGEMENT.md) and [repository audit](docs/SHIPPER-AUDIT.md). Backend-approved destinations and a matching contrib 0.135.0 validator must be configured by an operator.
+
 ## Quick Start
 
 Prerequisite: Docker Desktop or Docker Engine with Docker Compose v2.
