@@ -7,7 +7,7 @@ export interface EnvironmentView {id:string;projectId:string;code:string;name:st
 export interface ServerView {id:string;environmentId:string;hostId:string;hostname:string;ipAddress:string;status:string;labels:Record<string,string>;collectorStatus:string}
 export interface ServiceView {id:string;projectId:string;serviceKey:string;displayName:string;owner:string;criticality:string;status:string;labels:Record<string,string>}
 export interface ServiceInstanceView {id:string;serviceId:string;serviceName:string;serverId:string;hostname:string;instanceKey:string;version:string;status:string}
-export interface LogSourceView {id:string;serviceInstanceId:string;pathPattern:string;logType:string;parserProfile:string;multilineRule:string;timestampTimezone:string;enabled:boolean;configVersion:number}
+export interface LogSourceView {id:string;serviceInstanceId:string;pathPattern:string;logType:string;parserProfile:string;multilineRule:string;timestampTimezone:string;enabled:boolean;configVersion:number;shipperOptions?:{name:string;startAt:string;maxLogSize:string;includes:string[];excludes:string[]}}
 export type CollectorAgentStatus='ONLINE'|'OFFLINE'|'DEGRADED'|'UNKNOWN';
 export interface CollectorAgentView {id:string;serverId:string;agentKey:string;gatewayEndpoint:string;gatewayInsecure:boolean;status:CollectorAgentStatus;lastSeenAt:string|null;collectorVersion:string|null;desiredConfigVersion:number;desiredConfigHash:string;appliedConfigVersion:number|null;appliedConfigHash:string|null;inSync:boolean;sourceCount:number;lastError:string|null}
 export interface CollectorAgentRegistration {agent:CollectorAgentView;token:string}

@@ -13,6 +13,7 @@ export const routes:Routes=[
     {path:'investigations',canActivate:[capabilityGuard],data:{capability:CAPABILITY.RUN_INVESTIGATION},loadComponent:()=>import('./features/investigations/investigation.component').then(m=>m.InvestigationComponent)},
     {path:'traces',canActivate:[capabilityGuard],data:{capability:CAPABILITY.VIEW_TRACES},loadComponent:()=>import('./features/traces/trace-lookup.component').then(m=>m.TraceLookupComponent)},
     {path:'traces/:traceId',canActivate:[capabilityGuard],data:{capability:CAPABILITY.VIEW_TRACES},loadComponent:()=>import('./features/traces/trace-detail.component').then(m=>m.TraceDetailComponent)},
+    {path:'shippers',canActivate:[capabilityGuard],data:{capability:CAPABILITY.VIEW_ADMINISTRATION},loadComponent:()=>import('./features/shippers/shippers.component').then(m=>m.ShippersComponent)},
     {path:'administration',canActivate:[capabilityGuard],data:{capability:CAPABILITY.VIEW_ADMINISTRATION},loadComponent:()=>import('./features/administration/administration.component').then(m=>m.AdministrationComponent)},
     {path:'access-denied',loadComponent:()=>import('./features/access-denied/access-denied.component').then(m=>m.AccessDeniedComponent)},
     {path:'',pathMatch:'full',redirectTo:'overview'}

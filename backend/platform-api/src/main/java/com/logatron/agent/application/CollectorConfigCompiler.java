@@ -1,119 +1,95 @@
 package com.logatron.agent.application;
 
-import com.logatron.agent.configuration.AgentManagementProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.logatron.agent.configuration.*;
 import com.logatron.agent.persistence.CollectorAgentEntity;
-import com.logatron.catalog.persistence.LogSourceEntity;
-import com.logatron.catalog.persistence.LogSourceRepository;
+import com.logatron.catalog.persistence.*;
+import com.logatron.catalog.domain.*;
+import com.logatron.common.error.ApiException;
 import com.logatron.contracts.ingestion.ParserProfile;
 import org.springframework.stereotype.Component;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.yaml.snakeyaml.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.HexFormat;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 @Component
 public class CollectorConfigCompiler {
     private final LogSourceRepository sources;
     private final AgentManagementProperties properties;
-
-    public CollectorConfigCompiler(LogSourceRepository sources,AgentManagementProperties properties){this.sources=sources;this.properties=properties;}
+    private final ShipperManagementProperties settings;
+    private final ObjectMapper json=new ObjectMapper();
+    @Autowired public CollectorConfigCompiler(LogSourceRepository sources,AgentManagementProperties properties,ShipperManagementProperties settings){this.sources=sources;this.properties=properties;this.settings=settings;}
+    public CollectorConfigCompiler(LogSourceRepository sources,AgentManagementProperties properties){this(sources,properties,new ShipperManagementProperties(null,null));}
 
     public CompiledCollectorConfig compile(CollectorAgentEntity agent){
-        List<LogSourceEntity> rows=sources.findEnabledDetailedByServerId(agent.getServer().getId());
+        List<LogSourceEntity> rows=new ArrayList<>(sources.findEnabledDetailedByServerId(agent.getServer().getId()));
+        rows.sort(Comparator.comparing((LogSourceEntity s)->s.getId().toString()));
         var server=agent.getServer();var environment=server.getEnvironment();var project=environment.getProject();
-        StringBuilder yaml=new StringBuilder();
-        yaml.append("extensions:\n")
-                .append("  file_storage:\n")
-                .append("    directory: ").append(q(properties.stateDirectory()+"/storage")).append("\n")
-                .append("    create_directory: true\n\n")
-                .append("receivers:\n")
-                .append("  otlp/app:\n")
-                .append("    protocols:\n")
-                .append("      grpc:\n        endpoint: 127.0.0.1:4317\n")
-                .append("      http:\n        endpoint: 127.0.0.1:4318\n");
-        for(LogSourceEntity source:rows)appendReceiver(yaml,source);
-
-        yaml.append("\nprocessors:\n")
-                .append("  resource/agent_context:\n")
-                .append("    attributes:\n")
-                .append(resource("logatron.project.id",project.getId().toString()))
-                .append(resource("logatron.environment.id",environment.getId().toString()))
-                .append(resource("logatron.server.id",server.getId().toString()))
-                .append(resource("deployment.environment.name",environment.getCode()))
-                .append("  batch/signals:\n    timeout: 1s\n    send_batch_size: 100\n");
-        for(LogSourceEntity source:rows){appendTransform(yaml,agent,source);appendBatch(yaml,source);}
-
-        yaml.append("\nexporters:\n")
-                .append("  otlp/logatron:\n")
-                .append("    endpoint: ").append(q(agent.getGatewayEndpoint())).append("\n")
-                .append("    tls:\n      insecure: ").append(agent.isGatewayInsecure()).append("\n")
-                .append("    sending_queue:\n      enabled: true\n      storage: file_storage\n      queue_size: 10000\n")
-                .append("    retry_on_failure:\n      enabled: true\n      initial_interval: 1s\n      max_interval: 10s\n      max_elapsed_time: 0s\n\n")
-                .append("service:\n  extensions: [file_storage]\n  pipelines:\n")
-                .append("    traces/app:\n      receivers: [otlp/app]\n      processors: [resource/agent_context, batch/signals]\n      exporters: [otlp/logatron]\n")
-                .append("    metrics/app:\n      receivers: [otlp/app]\n      processors: [resource/agent_context, batch/signals]\n      exporters: [otlp/logatron]\n");
-        for(LogSourceEntity source:rows){String key=key(source);yaml.append("    logs/").append(key).append(":\n")
-                .append("      receivers: [filelog/").append(key).append("]\n")
-                .append("      processors: [transform/").append(key).append(", batch/").append(key).append("]\n")
-                .append("      exporters: [otlp/logatron]\n");}
-        String text=yaml.toString();return new CompiledCollectorConfig(text,sha256(text),rows.size());
+        Map<String,Object> receivers=map("otlp/app",map("protocols",map("grpc",map("endpoint","127.0.0.1:4317"),"http",map("endpoint","127.0.0.1:4318"))));
+        Map<String,Object> processors=map("resource/agent_context",map("attributes",List.of(resource("logatron.project.id",project.getId()),resource("logatron.environment.id",environment.getId()),resource("logatron.server.id",server.getId()),resource("deployment.environment.name",environment.getCode()))),"batch/signals",batch(100));
+        Map<String,Object> pipelines=map("traces/app",pipeline("otlp/app",List.of("resource/agent_context","batch/signals")),"metrics/app",pipeline("otlp/app",List.of("resource/agent_context","batch/signals")));
+        List<String> warnings=new ArrayList<>();
+        for(int n=0;n<rows.size();n++){
+            var source=rows.get(n);var instance=source.getServiceInstance();
+            if(!instance.getServer().getId().equals(server.getId())||!instance.getService().getProject().getId().equals(project.getId()))throw ApiException.invalid("Source ownership is inconsistent with the selected server.");
+            var options=source.getShipperOptions();LogSourceRules.validate(source.getPathPattern(),options,source.getMultilineRule());
+            String key=key(source);
+            Map<String,Object> receiver=map("include",LogSourceRules.includes(source.getPathPattern(),options),"exclude",options.excludes(),"start_at",options.startAt(),"include_file_path",true,"include_file_record_offset",true,"preserve_leading_whitespaces",true,"preserve_trailing_whitespaces",true,"max_log_size",options.maxLogSize(),"storage","file_storage","retry_on_failure",map("enabled",true));
+            String multiline=multiline(source);if(multiline!=null)receiver.put("multiline",map("line_start_pattern",multiline));
+            var excludes=new LinkedHashSet<String>(options.excludes());
+            for(int p=0;p<n;p++){
+                var previous=rows.get(p);var left=LogSourceRules.includes(previous.getPathPattern(),previous.getShipperOptions());var right=LogSourceRules.includes(source.getPathPattern(),options);
+                boolean overlap=left.stream().anyMatch(a->right.stream().anyMatch(b->LogSourceRules.overlaps(a,b)));
+                if(overlap){
+                    // Deterministic priority: lower UUID source owns matching files. Exclude it from later receivers.
+                    excludes.addAll(left);receiver.put("exclude",List.copyOf(excludes));
+                    warnings.add("Overlapping sources "+previous.getId()+" and "+source.getId()+": lower UUID source has priority; its include patterns are excluded from the later receiver.");
+                }
+            }
+            receivers.put("filelog/"+key,receiver);
+            processors.put("transform/"+key,map("error_mode","propagate","log_statements",List.of(map("context","log","statements",statements(agent,source)))));
+            processors.put("batch/"+key,batch(10));pipelines.put("logs/"+key,pipeline("filelog/"+key,List.of("transform/"+key,"batch/"+key)));
+        }
+        Map<String,Object> tls=map("insecure",agent.isGatewayInsecure());
+        settings.destinations().stream().filter(d->d.endpoint().equals(agent.getGatewayEndpoint())&&d.insecure()==agent.isGatewayInsecure()&&d.permits(project.getId(),environment.getId())).findFirst().ifPresent(d->{
+            if(d.caFile()!=null&&!d.caFile().isBlank())tls.put("ca_file",d.caFile());
+            if(d.certFile()!=null&&!d.certFile().isBlank())tls.put("cert_file",d.certFile());
+            if(d.keyFile()!=null&&!d.keyFile().isBlank())tls.put("key_file",d.keyFile());
+        });
+        var document=map("extensions",map("health_check",map("endpoint","127.0.0.1:13133"),"file_storage",map("directory",properties.stateDirectory()+"/storage","create_directory",true)),"receivers",receivers,"processors",processors,
+            "exporters",map("otlp/logatron",map("endpoint",agent.getGatewayEndpoint(),"tls",tls,"sending_queue",map("enabled",true,"storage","file_storage","queue_size",10000),"retry_on_failure",map("enabled",true,"initial_interval","1s","max_interval","10s","max_elapsed_time","0s"))),
+            "service",map("extensions",List.of("health_check","file_storage"),"pipelines",pipelines));
+        var dump=new DumperOptions();dump.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);dump.setSplitLines(false);dump.setWidth(4096);
+        String yaml=new Yaml(dump).dump(document).replace("$","$");return new CompiledCollectorConfig(yaml,sha256(yaml),rows.size(),List.copyOf(warnings));
     }
-
-    private void appendReceiver(StringBuilder y,LogSourceEntity source){
-        String key=key(source);y.append("  filelog/").append(key).append(":\n")
-                .append("    include:\n      - ").append(q(source.getPathPattern())).append("\n")
-                .append("    start_at: end\n")
-                .append("    include_file_path: true\n")
-                .append("    include_file_name: true\n")
-                .append("    max_log_size: 200KiB\n")
-                .append("    storage: file_storage\n");
-        String multiline=multiline(source);if(multiline!=null)y.append("    multiline:\n      line_start_pattern: ").append(q(multiline)).append("\n");
+    private List<String> statements(CollectorAgentEntity agent,LogSourceEntity source){
+        var i=source.getServiceInstance();var n=i.getServer();var e=n.getEnvironment();var s=i.getService();
+        String profile=ParserProfile.fromExternalName(source.getParserProfile()).name();
+        var envelope=map("schemaVersion",1,"eventId","","observedTimestamp","","collector",map("collectorId",agent.getAgentKey(),"sourceOffset",""),"resource",map("projectId",s.getProject().getId().toString(),"environmentId",e.getId().toString(),"serverId",n.getId().toString(),"serviceId",s.getId().toString(),"serviceInstanceId",i.getId().toString()),"source",map("logSourceId",source.getId().toString(),"logFile","","logType",source.getLogType(),"parserProfile",profile),"payload","","attributes",map());
+        try{return List.of(
+            "merge_maps(cache, ParseJSON("+json.writeValueAsString(json.writeValueAsString(envelope))+"), \"upsert\")",
+            "set(cache[\"eventId\"], UUID())",
+            "set(cache[\"observedTimestamp\"], FormatTime(Now(), \"2006-01-02T15:04:05.000000000Z07:00\"))",
+            "set(cache[\"collector\"][\"sourceOffset\"], Concat([\""+source.getId()+"\", attributes[\"log.file.path\"], String(attributes[\"log.file.record_offset\"]), SHA256(body)], \"|\"))",
+            "set(cache[\"source\"][\"logFile\"], attributes[\"log.file.path\"])",
+            "set(cache[\"payload\"], body)","set(body, cache)");
+        }catch(Exception ex){throw new IllegalStateException("Unable to serialize envelope",ex);}
     }
-
-    private void appendTransform(StringBuilder y,CollectorAgentEntity agent,LogSourceEntity source){
-        var instance=source.getServiceInstance();var server=instance.getServer();var environment=server.getEnvironment();var service=instance.getService();var project=service.getProject();
-        String profile=ParserProfile.fromExternalName(source.getParserProfile()).name();String key=key(source);
-        String template="{\"schemaVersion\":1,\"eventId\":\"\",\"observedTimestamp\":\"\",\"collector\":{\"collectorId\":\"\",\"sourceOffset\":\"\"},\"resource\":{\"projectId\":\"\",\"environmentId\":\"\",\"serverId\":\"\",\"serviceId\":\"\",\"serviceInstanceId\":\"\"},\"source\":{\"logSourceId\":\"\",\"logFile\":\"\",\"logType\":\"application\",\"parserProfile\":\""+profile+"\"},\"payload\":\"\",\"attributes\":{}}";
-        y.append("  transform/").append(key).append(":\n    error_mode: ignore\n    log_statements:\n      - context: log\n        statements:\n")
-                .append(stmt("set(attributes[\"__logatron_payload\"], body)"))
-                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)(authorization\\\\s*\\\\x22?\\\\s*[:=]\\\\s*\\\\x22?bearer\\\\s+)[^\\\\s,;\\\\x22]+\", \"$1[REDACTED]\")"))
-                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)((?:password|passwd|api[-]?key|access[-]?token|refresh[-]?token|secret)\\\\s*\\\\x22?\\\\s*[:=]\\\\s*\\\\x22?)[^\\\\s,;&\\\\x22]+\", \"$1[REDACTED]\")"))
-                .append(stmt("replace_pattern(attributes[\"__logatron_payload\"], \"(?i)(jdbc:[a-z0-9]+://[^:/@\\\\s]+:)[^@/\\\\s]+(@)\", \"$1[REDACTED]$2\")"))
-                .append(stmt("merge_maps(cache, ParseJSON(\""+escapeOttl(template)+"\"), \"upsert\")"))
-                .append(stmt("set(cache[\"eventId\"], UUID())"))
-                .append(stmt("set(cache[\"observedTimestamp\"], FormatTime(Now(), \"2006-01-02T15:04:05.000-07:00\"))"))
-                .append(stmt("set(cache[\"collector\"][\"collectorId\"], \""+escapeOttl(agent.getAgentKey())+"\")"))
-                .append(stmt("set(cache[\"collector\"][\"sourceOffset\"], attributes[\"log.file.path\"])"))
-                .append(stmt("set(cache[\"resource\"][\"projectId\"], \""+project.getId()+"\")"))
-                .append(stmt("set(cache[\"resource\"][\"environmentId\"], \""+environment.getId()+"\")"))
-                .append(stmt("set(cache[\"resource\"][\"serverId\"], \""+server.getId()+"\")"))
-                .append(stmt("set(cache[\"resource\"][\"serviceId\"], \""+service.getId()+"\")"))
-                .append(stmt("set(cache[\"resource\"][\"serviceInstanceId\"], \""+instance.getId()+"\")"))
-                .append(stmt("set(cache[\"source\"][\"logSourceId\"], \""+source.getId()+"\")"))
-                .append(stmt("set(cache[\"source\"][\"logFile\"], attributes[\"log.file.path\"])"))
-                .append(stmt("set(cache[\"source\"][\"logType\"], \""+escapeOttl(source.getLogType())+"\")"))
-                .append(stmt("set(cache[\"payload\"], attributes[\"__logatron_payload\"])"))
-                .append(stmt("set(body, cache)"))
-                .append(stmt("delete_key(attributes, \"__logatron_payload\")"));
-    }
-
-    private void appendBatch(StringBuilder y,LogSourceEntity source){String key=key(source);y.append("  batch/").append(key).append(":\n    timeout: 1s\n    send_batch_size: 10\n");}
-    private static String key(LogSourceEntity source){return "source_"+source.getId().toString().replace("-","").substring(0,12).toLowerCase(Locale.ROOT);}
+    private static String key(LogSourceEntity s){return "source_"+s.getId().toString().replace("-","");}
+    private static Map<String,Object> pipeline(String receiver,List<String> processors){return map("receivers",List.of(receiver),"processors",processors,"exporters",List.of("otlp/logatron"));}
+    private static Map<String,Object> batch(int size){return map("timeout","1s","send_batch_size",size);}
+    private static Map<String,Object> resource(String key,Object value){return map("key",key,"value",value.toString(),"action","upsert");}
+    public static Map<String,Object> map(Object...pairs){var map=new LinkedHashMap<String,Object>();for(int i=0;i<pairs.length;i+=2)map.put((String)pairs[i],pairs[i+1]);return map;}
     private static String multiline(LogSourceEntity source){
         if(source.getMultilineRule()!=null)return source.getMultilineRule().isBlank()?null:source.getMultilineRule();
-        ParserProfile profile=ParserProfile.fromExternalName(source.getParserProfile());return switch(profile){
-        case JAVA_PIPE_V1 -> "^[^\\s|]+\\s*\\|\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
-        case JAVA_PIPE_LEVEL_FIRST_V1 -> "^\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
-        case PLAINTEXT -> "^\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}";
-        case JSON -> null;
-    };}
-    private static String resource(String key,String value){return "      - key: "+key+"\n        value: "+q(value)+"\n        action: upsert\n";}
-    private static String stmt(String value){return "          - '"+value.replace("'","''")+"'\n";}
-    private static String q(String value){return "'"+(value==null?"":value.replace("'","''"))+"'";}
-    private static String escapeOttl(String value){return value.replace("\\","\\\\").replace("\"","\\\"");}
-    private static String sha256(String value){try{MessageDigest digest=MessageDigest.getInstance("SHA-256");return HexFormat.of().formatHex(digest.digest(value.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new IllegalStateException("SHA-256 is unavailable",e);}}
-
-    public record CompiledCollectorConfig(String yaml,String sha256,int sourceCount){}
+        return switch(ParserProfile.fromExternalName(source.getParserProfile())){
+            case JAVA_PIPE_V1 -> "^[^\\s|]+\\s*\\|\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
+            case JAVA_PIPE_LEVEL_FIRST_V1 -> "^\\s*(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|ERR|FATAL|CRITICAL)\\s*\\|";
+            case PLAINTEXT,JSON -> null;
+        };
+    }
+    private static String sha256(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new IllegalStateException(e);}}
+    public record CompiledCollectorConfig(String yaml,String sha256,int sourceCount,List<String> warnings){}
 }

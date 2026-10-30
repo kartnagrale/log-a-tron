@@ -4,6 +4,8 @@ import com.logatron.catalog.domain.CatalogEnums.*;
 import jakarta.validation.constraints.*;
 import java.time.Instant;
 import java.util.*;
+import com.logatron.catalog.domain.LogSourceOptions;
+import jakarta.validation.Valid;
 
 public final class CatalogDtos {
     private CatalogDtos() {}
@@ -16,7 +18,10 @@ public final class CatalogDtos {
 
     public record LogSourceView(
             UUID id,UUID serviceInstanceId,String pathPattern,String logType,String parserProfile,
-            String multilineRule,String timestampTimezone,boolean enabled,long configVersion) {
+            String multilineRule,String timestampTimezone,boolean enabled,long configVersion,LogSourceOptions shipperOptions) {
+        public LogSourceView(UUID id,UUID serviceInstanceId,String pathPattern,String logType,String parserProfile,String multilineRule,String timestampTimezone,boolean enabled,long configVersion) {
+            this(id,serviceInstanceId,pathPattern,logType,parserProfile,multilineRule,timestampTimezone,enabled,configVersion,LogSourceOptions.defaults());
+        }
         public LogSourceView(UUID id,UUID serviceInstanceId,String pathPattern,String logType,String parserProfile,String multilineRule,boolean enabled,long configVersion) {
             this(id,serviceInstanceId,pathPattern,logType,parserProfile,multilineRule,"UTC",enabled,configVersion);
         }
@@ -40,7 +45,10 @@ public final class CatalogDtos {
             @NotBlank @Size(max=100) String parserProfile,
             @Size(max=4000) String multilineRule,
             @Size(max=80) String timestampTimezone,
-            boolean enabled) {
+            boolean enabled,@Valid LogSourceOptions shipperOptions) {
+        public CreateLogSourceRequest(UUID serviceInstanceId,String pathPattern,String logType,String parserProfile,String multilineRule,String timestampTimezone,boolean enabled) {
+            this(serviceInstanceId,pathPattern,logType,parserProfile,multilineRule,timestampTimezone,enabled,LogSourceOptions.defaults());
+        }
         public CreateLogSourceRequest(UUID serviceInstanceId,String pathPattern,String logType,String parserProfile,String multilineRule,boolean enabled) {
             this(serviceInstanceId,pathPattern,logType,parserProfile,multilineRule,"UTC",enabled);
         }
@@ -52,7 +60,10 @@ public final class CatalogDtos {
             @NotBlank @Size(max=100) String parserProfile,
             @Size(max=4000) String multilineRule,
             @Size(max=80) String timestampTimezone,
-            boolean enabled) {
+            boolean enabled,@Valid LogSourceOptions shipperOptions) {
+        public UpdateLogSourceRequest(String pathPattern,String logType,String parserProfile,String multilineRule,String timestampTimezone,boolean enabled) {
+            this(pathPattern,logType,parserProfile,multilineRule,timestampTimezone,enabled,null);
+        }
         public UpdateLogSourceRequest(String pathPattern,String logType,String parserProfile,String multilineRule,boolean enabled) {
             this(pathPattern,logType,parserProfile,multilineRule,"UTC",enabled);
         }

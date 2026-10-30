@@ -20,6 +20,8 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiError> constraint(ConstraintViolationException ex){return response(HttpStatus.BAD_REQUEST,ErrorCode.INVALID_REQUEST,"The supplied request is invalid.",List.of());}
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ApiError> conflict(DataIntegrityViolationException ex){return response(HttpStatus.CONFLICT,ErrorCode.CONFLICT,"The request conflicts with existing data.",List.of());}
+    @ExceptionHandler({org.springframework.orm.ObjectOptimisticLockingFailureException.class,org.springframework.dao.CannotAcquireLockException.class})
+    ResponseEntity<ApiError> concurrentChange(Exception ex){return response(HttpStatus.CONFLICT,ErrorCode.CONFLICT,"The resource changed concurrently. Refresh and review before retrying.",List.of());}
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiError> unexpected(Exception ex,HttpServletRequest request){log.error("Unhandled API failure for {}",request.getRequestURI(),ex);return response(HttpStatus.INTERNAL_SERVER_ERROR,ErrorCode.INTERNAL_ERROR,"The request could not be completed.",List.of());}
     private ResponseEntity<ApiError> response(HttpStatus status,ErrorCode code,String message,List<ApiError.FieldError> fields){String trace=Optional.ofNullable(MDC.get("traceId")).orElse(MDC.get("correlationId"));return ResponseEntity.status(status).body(new ApiError(Instant.now(),status.value(),code.name(),message,trace,fields));}

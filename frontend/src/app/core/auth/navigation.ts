@@ -12,6 +12,7 @@ export const NAVIGATION: NavigationGroup[] = [
   ]},
   {label:'Platform',items:[
     {label:'Projects',route:'/projects',icon:'pi-sitemap',capability:CAPABILITY.VIEW_CATALOG},
+    {label:'Shippers',route:'/shippers',icon:'pi-send',capability:CAPABILITY.VIEW_ADMINISTRATION},
     {label:'Administration',route:'/administration',icon:'pi-sliders-h',capability:CAPABILITY.VIEW_ADMINISTRATION}
   ]}
 ];

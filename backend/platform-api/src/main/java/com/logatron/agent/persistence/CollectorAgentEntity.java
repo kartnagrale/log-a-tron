@@ -24,6 +24,10 @@ public class CollectorAgentEntity extends AuditedEntity {
     @Column(name="applied_config_version") private Long appliedConfigVersion;
     @Column(name="last_seen_at") private Instant lastSeenAt;
     @Column(name="last_error",columnDefinition="text") private String lastError;
+    @Version @Column(name="row_version") private long rowVersion;
+    @Column(name="selected_config_version") private Long selectedConfigVersion;
+    @Column(name="deployment_enabled",nullable=false) private boolean deploymentEnabled;
+    @Column(name="deployment_protocol",length=40) private String deploymentProtocol;
 
     protected CollectorAgentEntity() {}
 
@@ -43,6 +47,12 @@ public class CollectorAgentEntity extends AuditedEntity {
     public Long getAppliedConfigVersion(){return appliedConfigVersion;}
     public Instant getLastSeenAt(){return lastSeenAt;}
     public String getLastError(){return lastError;}
+    public Long getSelectedConfigVersion(){return selectedConfigVersion;}
+    public void selectConfiguration(Long version){this.selectedConfigVersion=version;}
+    public boolean isDeploymentEnabled(){return deploymentEnabled;}
+    public void deploymentEnabled(boolean enabled){this.deploymentEnabled=enabled;}
+    public String getDeploymentProtocol(){return deploymentProtocol;}
+    public void deploymentProtocol(String protocol){this.deploymentProtocol=protocol;}
 
     public void rotateToken(String tokenHash){this.tokenHash=tokenHash;}
     public void updateGateway(String endpoint,boolean insecure){this.gatewayEndpoint=endpoint;this.gatewayInsecure=insecure;}

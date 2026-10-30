@@ -17,8 +17,9 @@ public class CollectorAgentInternalController {
 
     @GetMapping(value="/{agentId}/config",produces="application/yaml")
     public ResponseEntity<String> config(@PathVariable UUID agentId,@RequestHeader(TOKEN_HEADER) String token){
-        var compiled=service.config(agentId,token);return ResponseEntity.ok()
+        var compiled=service.config(agentId,token);if(compiled==null)return ResponseEntity.noContent().build();return ResponseEntity.ok()
                 .header("ETag","\""+compiled.sha256()+"\"")
+                .header("X-Logatron-Deployment-Id",compiled.deploymentId()==null?"":compiled.deploymentId().toString())
                 .header("X-Logatron-Config-Hash",compiled.sha256())
                 .header("X-Logatron-Config-Version",String.valueOf(compiled.configVersion()))
                 .header("X-Logatron-Source-Count",String.valueOf(compiled.sourceCount()))

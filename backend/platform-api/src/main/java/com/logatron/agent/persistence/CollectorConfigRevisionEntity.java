@@ -3,6 +3,9 @@ package com.logatron.agent.persistence;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import java.util.List;
 
 @Entity
 @Table(name="collector_config_revision", uniqueConstraints={
@@ -16,6 +19,10 @@ public class CollectorConfigRevisionEntity {
     @Column(name="config_yaml",nullable=false,columnDefinition="text") private String configYaml;
     @Column(name="source_count",nullable=false) private int sourceCount;
     @Column(name="created_at",nullable=false,updatable=false) private Instant createdAt;
+    @Column(name="validation_status",nullable=false,length=30) private String validationStatus="UNKNOWN";
+    @Column(name="validation_message",columnDefinition="text") private String validationMessage;
+    @Column(name="validated_at") private Instant validatedAt;
+    @JdbcTypeCode(SqlTypes.JSON) @Column(nullable=false,columnDefinition="jsonb") private List<String> warnings=List.of();
 
     protected CollectorConfigRevisionEntity() {}
     public CollectorConfigRevisionEntity(UUID id,CollectorAgentEntity agent,long configVersion,String configHash,String configYaml,int sourceCount,Instant createdAt){
@@ -28,4 +35,10 @@ public class CollectorConfigRevisionEntity {
     public String getConfigYaml(){return configYaml;}
     public int getSourceCount(){return sourceCount;}
     public Instant getCreatedAt(){return createdAt;}
+    public String getValidationStatus(){return validationStatus;}
+    public String getValidationMessage(){return validationMessage;}
+    public Instant getValidatedAt(){return validatedAt;}
+    public List<String> getWarnings(){return warnings;}
+    public void warnings(List<String> warnings){this.warnings=List.copyOf(warnings);}
+    public void validation(String status,String message){validationStatus=status;validationMessage=message;validatedAt=Instant.now();}
 }
