@@ -35,6 +35,10 @@ class CollectorConfigCompilerTest {
         assertThat(compile(f)).doesNotContain("multiline:");
     }
 
+    @Test void plaintextRetainsExistingTimestampBasedMultilineDefault(){
+        assertThat(compile(fixture("PLAINTEXT",null))).contains("line_start_pattern: ^\\d{4}-\\d{2}-\\d{2}[ T]");
+    }
+
     private String compile(Fixture f){
         when(sources.findEnabledDetailedByServerId(f.server().getId())).thenReturn(List.of(f.source()));
         return compiler.compile(f.agent()).yaml();
