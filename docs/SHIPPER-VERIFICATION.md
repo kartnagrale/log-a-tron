@@ -4,7 +4,7 @@ The implementation is native to the existing Angular / Spring Boot application. 
 
 ## Local results
 
-- Full backend Maven verify passed locally with 85 tests, zero failures/errors/skips. One additional regression test now pins the existing PLAINTEXT multiline default; the final GitHub workflow runs all 86 tests. Includes PostgreSQL migration/RBAC/concurrent generation/adoption/deployment failure tests, real contrib 0.135.0 ingestion/restart/rollback tests and the existing Kafka-to-ClickHouse pipeline test.
+- Full backend Maven verify passed locally with 85 tests, zero failures/errors/skips. Two additional regression tests now pin the existing PLAINTEXT multiline default and non-enumerating missing/invalid agent-token rejection; the final GitHub workflow runs all 87 tests. Includes PostgreSQL migration/RBAC/concurrent generation/adoption/deployment failure tests, real contrib 0.135.0 ingestion/restart/rollback tests and the existing Kafka-to-ClickHouse pipeline test.
 - Frontend production build and 45 tests pass. Existing log, investigation, scope restoration, authentication, capability and theme tests remain included.
 - Managed-agent operation fixture passes activation, repeat polling, target validation failure, failed-start restoration and refusal to activate without a rollout identity.
 - Browser verification used an isolated local PostgreSQL database/API and synthetic resources. Created project, environment, service, server, instance and two disjoint root/date-folder sources entirely through the UI. Registered a shipper, dismissed its one-time token, generated/previewed/downloaded YAML and confirmed repeated generation retains v1.

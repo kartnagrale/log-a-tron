@@ -66,6 +66,12 @@ class ShipperApiIntegrationTest {
   mvc.perform(post(base+"/collector-agents/"+agent+"/deployments").with(admin()).contentType("application/json").content("{\"version\":1,\"confirmed\":true}")).andExpect(status().isBadRequest());
   mvc.perform(post(base+"/shipper-configurations/generate").with(admin()).contentType("application/json").content("{\"agentId\":\""+UUID.randomUUID()+"\"}")).andExpect(status().isNotFound());
  }
+ @Test void missingAndInvalidAgentTokensAreRejectedWithoutExposingIdentity()throws Exception{
+  String internal="/api/internal/v1/agents/"+agent;
+  mvc.perform(get(internal+"/config")).andExpect(status().isNotFound());
+  mvc.perform(get(internal+"/config").header("X-Logatron-Agent-Token","invalid-token")).andExpect(status().isNotFound());
+  mvc.perform(post(internal+"/heartbeat").header("X-Logatron-Agent-Token","invalid-token").contentType("application/json").content("{\"protocol\":\"managed-v2\",\"status\":\"ONLINE\"}")).andExpect(status().isNotFound());
+ }
  @Test void deploymentFailureRestoresSelectionAndExplicitRollbackIsVersioned()throws Exception{
   JsonNode v1=generate();postJson(base+"/collector-agents/"+agent+"/config-revisions/1/validate",Map.of());
   heartbeat(Map.of("collectorVersion","otelcol-contrib version 0.135.0","protocol","managed-v2","status","DEGRADED"));

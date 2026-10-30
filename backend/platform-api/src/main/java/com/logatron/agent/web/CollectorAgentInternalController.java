@@ -16,7 +16,7 @@ public class CollectorAgentInternalController {
     public CollectorAgentInternalController(CollectorAgentService service){this.service=service;}
 
     @GetMapping(value="/{agentId}/config",produces="application/yaml")
-    public ResponseEntity<String> config(@PathVariable UUID agentId,@RequestHeader(TOKEN_HEADER) String token){
+    public ResponseEntity<String> config(@PathVariable UUID agentId,@RequestHeader(value=TOKEN_HEADER,required=false) String token){
         var compiled=service.config(agentId,token);if(compiled==null)return ResponseEntity.noContent().build();return ResponseEntity.ok()
                 .header("ETag","\""+compiled.sha256()+"\"")
                 .header("X-Logatron-Deployment-Id",compiled.deploymentId()==null?"":compiled.deploymentId().toString())
@@ -29,5 +29,5 @@ public class CollectorAgentInternalController {
 
     @PostMapping("/{agentId}/heartbeat")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void heartbeat(@PathVariable UUID agentId,@RequestHeader(TOKEN_HEADER) String token,@Valid @RequestBody AgentHeartbeatRequest body){service.heartbeat(agentId,token,body);}
+    public void heartbeat(@PathVariable UUID agentId,@RequestHeader(value=TOKEN_HEADER,required=false) String token,@Valid @RequestBody AgentHeartbeatRequest body){service.heartbeat(agentId,token,body);}
 }
